@@ -25,7 +25,7 @@ endif
 config-darwin:
 	$(STIME)
 	@echo "	Installing macos specific dependencies using brew"
-	@brew install gtk+3 glib cairo atk zmq
+	@brew install gtk+3 glib cairo zmq
 	$(ETIME)
 
 .PHONY: config-linux

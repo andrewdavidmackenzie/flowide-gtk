@@ -27,10 +27,6 @@ addons:
       - zmq
       - gtk+3
       - cairo
-      - pango
-
-before_install:
-  - make config
 
 script:
   - make
