@@ -1,0 +1,38 @@
+language: rust
+dist: bionic
+
+# request macOS 10.15.7
+matrix:
+  include:
+  - os: linux
+    rust: stable
+  - os: osx
+    osx_image: xcode12.2
+    rust: stable
+
+branches:
+  only:
+    - "master"
+
+addons:
+  apt:
+    packages:
+      - libgtk-3-dev
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libssl-dev
+  homebrew:
+    update: true # if not then pango lib for gtk3 won't build
+    packages:
+      - gtk+3
+      - cairo
+      - pango
+
+# Docs are only built and deployed in "cron" builds
+script:
+  - cargo clippy
+  - cargo build
+
+notifications:
+  email:
+  - andrew@mackenzie-serres.net
