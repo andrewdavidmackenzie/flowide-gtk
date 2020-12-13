@@ -30,7 +30,6 @@ addons:
 
 # Docs are only built and deployed in "cron" builds
 script:
-  - cargo clippy
   - cargo build
 
 notifications:
