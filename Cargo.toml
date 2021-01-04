@@ -19,14 +19,15 @@ default = ["debugger", "metrics"]
 debugger = []
 metrics = []  # feature for tracking of metrics during execution
 
-[dependencies.flowrstructs]
-version = "0.25.0"
-features = ["debugger"]
+
 
 [dependencies]
 flow_impl = "0.21.0"
 flowc = "0.31.0"
-flowr = "0.31.0"
+# Enable debugger feature in flowrstructs
+flowrstructs = { version = "0.25.0", features = ["debugger"] }
+# Do not enable the "distributed" feature for flowrlib
+flowr = { version = "0.31.0", default-features = false, features = ["debugger", "native", "metrics", "checks"] }
 provider = "0.25.0"
 
 toml = "0.4"
