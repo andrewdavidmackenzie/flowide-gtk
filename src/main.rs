@@ -112,7 +112,7 @@ fn open_action<F: 'static>(window: &ApplicationWindow, open: &MenuItem, action_f
 
 fn run_action(run: &MenuItem) {
     run.connect_activate(move |_| {
-        // TODO open a dialog to get the args to pass to the flow being run
+        // TODO open a dialog or read from a textview the args to pass to the flow being run
         actions::run_manifest(vec!());
     });
 }
@@ -213,6 +213,7 @@ fn manifest_viewer() -> (ScrolledWindow, TextBuffer) {
 }
 
 
+// TODO get args from a view
 //                let (start, end) = runtime_context.args.get_bounds();
 //                let arg_string = runtime_context.args.get_text(&start, &end, false).unwrap().to_string();
 //                let args: Vec<String> = arg_string.split(' ').map(|s| s.to_string()).collect();
@@ -281,6 +282,15 @@ fn set_panic_hook() {
     // `set_panic_hook` function to get better error messages if we ever panic.
     #[cfg(feature = "console_error_panic_hook")]
         console_error_panic_hook::set_once();
+}
+
+pub fn ui_error(message: &str) {
+    println!("UI message: {}", message);
+}
+
+// For logging errors related with the UI that suggest displaying them on the UI maybe impossible
+pub fn log_error(message: &str) {
+    println!("UI message: {}", message);
 }
 
 pub fn message(message: &str) {

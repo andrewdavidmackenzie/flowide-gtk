@@ -19,14 +19,13 @@ default = ["debugger", "metrics"]
 debugger = []
 metrics = []  # feature for tracking of metrics during execution
 
-[dependencies.flowrstructs]
-version = "0.25.0"
-features = ["debugger"]
-
 [dependencies]
 flow_impl = "0.21.0"
 flowc = "0.31.0"
-flowr = "0.31.0"
+# Enable debugger feature in flowrstructs
+flowrstructs = { version = "0.25.0", features = ["debugger"] }
+# Do not enable the "distributed" feature for flowrlib
+flowr = { version = "0.31.0", default-features = false, features = ["debugger", "native", "metrics", "checks"] }
 provider = "0.25.0"
 
 toml = "0.4"
@@ -35,11 +34,8 @@ serde_json = "1.0"
 log = "0.4.6"
 lazy_static = "1"
 gtk-rs-state = "0.4.1"
-cairo-rs = "0.9"
 gdk = "0.13"
 gdk-pixbuf = "0.9"
 gio = "0.9"
-glib = "0.10"
 gtk = "0.9"
-pango = "0.9"
 image = "=0.23.10"
