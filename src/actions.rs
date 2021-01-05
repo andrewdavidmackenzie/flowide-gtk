@@ -68,21 +68,28 @@ pub fn open_flow(url: String) {
     std::thread::spawn(move || {
         match load_flow_from_url(&url) {
             Ok(flow) => {
-                match toml::Value::try_from(&flow) {
-                    Ok(flow_content) => {
-                        match UICONTEXT.try_lock() {
-                            Ok(mut context) => {
-                                context.flow = Some(flow);
-                                context.flow_url = Some(url);
+                match UICONTEXT.try_lock() {
+                    Ok(mut context) => {
+                        // Serialize the flow into toml for ui display
+                        match toml::Value::try_from(&flow) {
+                            Ok(flow_content) => {
                                 widgets::do_in_gtk_eventloop(|refs| {
-                                    refs.compile_flow_menu().set_sensitive(true);
+                                    // show the toml representation of the flow in the text buffer
                                     refs.flow_buffer().set_text(&flow_content.to_string());
                                 });
                             }
-                            _ => message("Could not get access to uicontext")
+                            Err(e) => message(&format!("Error serializing flow to toml: `{}`", &e.to_string()))
                         }
+
+                        // set flow_url and flow object into the context for later use
+                        context.flow = Some(flow);
+                        context.flow_url = Some(url);
+                        widgets::do_in_gtk_eventloop(|refs| {
+                            // enable compiling of the loaded flow
+                            refs.compile_flow_menu().set_sensitive(true);
+                        });
                     }
-                    Err(e) => message(&e.to_string())
+                    _ => message("Could not get access to uicontext")
                 }
             }
             Err(e) => message(&e)
