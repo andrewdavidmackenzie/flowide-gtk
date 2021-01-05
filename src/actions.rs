@@ -10,7 +10,7 @@ use flowrlib::coordinator::Submission;
 use flowrstructs::manifest::{DEFAULT_MANIFEST_FILENAME, Manifest};
 use provider::content::provider::MetaProvider;
 
-use crate::message;
+use crate::{message, ui_error};
 use crate::UICONTEXT;
 use crate::widgets;
 
@@ -60,7 +60,7 @@ fn load_flow_from_url(url: &str) -> Result<Flow, String> {
     match loader::load(url, &provider)
         .map_err(|e| format!("Could not load flow context: '{}'", e.to_string()))? {
         FlowProcess(flow) => Ok(flow),
-        _ => Err("Process loaded was not of type 'Flow'".into())
+        _ => Err(format!("Process loaded from Url: '{}' was not of type 'Flow'", url))
     }
 }
 
@@ -70,29 +70,13 @@ pub fn open_flow(url: String) {
             Ok(flow) => {
                 match UICONTEXT.try_lock() {
                     Ok(mut context) => {
-                        // Serialize the flow into toml for ui display
-                        match toml::Value::try_from(&flow) {
-                            Ok(flow_content) => {
-                                widgets::do_in_gtk_eventloop(|refs| {
-                                    // show the toml representation of the flow in the text buffer
-                                    refs.flow_buffer().set_text(&flow_content.to_string());
-                                });
-                            }
-                            Err(e) => message(&format!("Error serializing flow to toml: `{}`", &e.to_string()))
-                        }
-
                         // set flow_url and flow object into the context for later use
-                        context.flow = Some(flow);
-                        context.flow_url = Some(url);
-                        widgets::do_in_gtk_eventloop(|refs| {
-                            // enable compiling of the loaded flow
-                            refs.compile_flow_menu().set_sensitive(true);
-                        });
+                        context.set_flow(Some(url), Some(flow));
                     }
-                    _ => message("Could not get access to uicontext")
+                    _ => ui_error("Could not get access to uicontext")
                 }
             }
-            Err(e) => message(&e)
+            Err(e) => ui_error(&e)
         }
     });
 }
