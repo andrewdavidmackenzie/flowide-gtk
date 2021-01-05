@@ -19,8 +19,6 @@ default = ["debugger", "metrics"]
 debugger = []
 metrics = []  # feature for tracking of metrics during execution
 
-
-
 [dependencies]
 flow_impl = "0.21.0"
 flowc = "0.31.0"
@@ -36,11 +34,8 @@ serde_json = "1.0"
 log = "0.4.6"
 lazy_static = "1"
 gtk-rs-state = "0.4.1"
-cairo-rs = "0.9"
 gdk = "0.13"
 gdk-pixbuf = "0.9"
 gio = "0.9"
-glib = "0.10"
 gtk = "0.9"
-pango = "0.9"
 image = "=0.23.10"
