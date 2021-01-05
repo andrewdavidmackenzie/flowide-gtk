@@ -43,6 +43,9 @@ impl UIContext {
                     refs.compile_flow_menu().set_sensitive(true);
                 });
 
+                // TODO also serialize to toml
+                // but it looks like their is an ambiguity as it reports an error
+                // see https://stackoverflow.com/questions/57560593/why-do-i-get-an-unsupportedtype-error-when-serializing-to-toml-with-a-manually-i
                 match serde_json::to_string_pretty(&flow_found) {
                     Ok(flow_content) => self.set_flow_contents(Some(flow_content)),
                     Err(e) => {
