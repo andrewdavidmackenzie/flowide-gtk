@@ -9,7 +9,7 @@ use flowrlib::coordinator::Submission;
 use flowrstructs::manifest::{DEFAULT_MANIFEST_FILENAME, Manifest};
 use provider::content::provider::MetaProvider;
 
-use crate::{message, ui_error};
+use crate::{message, ui_error, log_error};
 use crate::UICONTEXT;
 
 fn manifest_url(flow_url_str: &str) -> String {
@@ -28,20 +28,21 @@ pub fn compile_flow() {
                         message("Compiling flow");
                         match compile::compile(&flow_clone) {
                             Ok(tables) => {
-                                //                        info!("==== Compiler phase: Compiling provided implementations");
+                                message("Compiling provided implementations");
                                 //                        compile_supplied_implementations(&mut tables, provided_implementations, release)?;
+                                message("Creating flow manifest");
                                 match generate::create_manifest(&flow, true, &flow_url_clone, &tables) {
                                     Ok(manifest) => context.set_manifest(Some(manifest_url(&flow_url_clone)), Some(manifest)),
-                                    Err(e) => message(&e.to_string())
+                                    Err(e) => ui_error(&e.to_string())
                                 }
                             }
-                            Err(e) => message(&e.to_string())
+                            Err(e) => ui_error(&e.to_string())
                         }
                     }
-                    _ => message("No flow loaded to compile")
+                    _ => ui_error("No flow loaded to compile")
                 }
             }
-            _ => message("Could not access ui context")
+            _ => log_error("Could not access ui context")
         }
     });
 }
@@ -61,14 +62,12 @@ pub fn open_flow(url: String) {
         match load_flow_from_url(&url) {
             Ok(flow) => {
                 match UICONTEXT.try_lock() {
-                    Ok(mut context) => {
-                        // set flow_url and flow object into the context for later use
-                        context.set_flow(Some(url), Some(flow));
-                    }
-                    _ => ui_error("Could not get access to uicontext")
+                    Ok(mut context) => context.set_flow(Some(url), Some(flow)),
+                    _ => log_error("Could not get access to uicontext")
                 }
             }
-            Err(e) => ui_error(&e)
+            Err(e) => ui_error(&format!("Error while trying to open flow from url '{}': {}",
+                                        url, &e))
         }
     });
 }
@@ -79,10 +78,8 @@ pub fn open_manifest(url: String) {
         match Manifest::load(&provider, &url) {
             Ok((manifest, _)) => {
                 match UICONTEXT.try_lock() {
-                    Ok(mut context) => {
-                        context.set_manifest(Some(url), Some(manifest));
-                    }
-                    Err(_) => ui_error("Could not lock UI Context")
+                    Ok(mut context) => context.set_manifest(Some(url), Some(manifest)),
+                    Err(_) => log_error("Could not lock UI Context")
                 }
             }
             Err(e) => ui_error(&format!("Error loading manifest from url '{}': {}",
@@ -97,7 +94,7 @@ fn set_args(arg: Vec<String>) {
             let mut guard = context.client.lock().unwrap();
             guard.set_args(arg);
         }
-        _ => message("Could not get access to uicontext and client")
+        _ => log_error("Could not get access to uicontext and client")
     }
 }
 
@@ -118,10 +115,10 @@ pub fn run_manifest(args: Vec<String>) {
                         // coordinator.submit(submission);
                         message("Submitted flow for execution");
                     }
-                    _ => message("No manifest loaded to run")
+                    _ => ui_error("No manifest loaded to run")
                 }
             }
-            _ => message("Could not get access to uicontext and client")
+            _ => log_error("Could not get access to uicontext and client")
         }
     });
 }
