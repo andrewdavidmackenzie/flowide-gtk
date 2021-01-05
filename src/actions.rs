@@ -1,4 +1,3 @@
-use gtk::{TextBufferExt, WidgetExt};
 use url::Url;
 
 use flowclib::compiler::compile;
@@ -12,7 +11,6 @@ use provider::content::provider::MetaProvider;
 
 use crate::{message, ui_error};
 use crate::UICONTEXT;
-use crate::widgets;
 
 fn manifest_url(flow_url_str: &str) -> String {
     let flow_url = Url::parse(&flow_url_str).unwrap();
@@ -33,13 +31,7 @@ pub fn compile_flow() {
                                 //                        info!("==== Compiler phase: Compiling provided implementations");
                                 //                        compile_supplied_implementations(&mut tables, provided_implementations, release)?;
                                 match generate::create_manifest(&flow, true, &flow_url_clone, &tables) {
-                                    Ok(manifest) => {
-                                        set_manifest(&manifest);
-                                        context.manifest = Some(manifest);
-                                        let manifest_url_str = manifest_url(&flow_url_clone);
-                                        message(&format!("Manifest url set to '{}'", manifest_url_str));
-                                        context.manifest_url = Some(Url::parse(&manifest_url_str).unwrap());
-                                    }
+                                    Ok(manifest) => context.set_manifest(Some(manifest_url(&flow_url_clone)), Some(manifest)),
                                     Err(e) => message(&e.to_string())
                                 }
                             }
@@ -81,30 +73,20 @@ pub fn open_flow(url: String) {
     });
 }
 
-fn set_manifest(manifest: &Manifest) {
-    let manifest_content = serde_json::to_string_pretty(manifest).unwrap(); // TODO
-    widgets::do_in_gtk_eventloop(|refs| {
-        refs.run_manifest_menu().set_sensitive(true);
-        refs.manifest_buffer().set_text(&manifest_content);
-    });
-}
-
 pub fn open_manifest(url: String) {
     std::thread::spawn(move || {
         let provider = MetaProvider {};
         match Manifest::load(&provider, &url) {
             Ok((manifest, _)) => {
-                set_manifest(&manifest);
-
                 match UICONTEXT.try_lock() {
                     Ok(mut context) => {
-                        context.manifest = Some(manifest);
-                        context.manifest_url = Some(Url::parse(&url).unwrap());
+                        context.set_manifest(Some(url), Some(manifest));
                     }
-                    Err(_) => message("Could not lock UI Context")
+                    Err(_) => ui_error("Could not lock UI Context")
                 }
             }
-            Err(e) => message(&e.to_string())
+            Err(e) => ui_error(&format!("Error loading manifest from url '{}': {}",
+                                        url, &e.to_string()))
         }
     });
 }
