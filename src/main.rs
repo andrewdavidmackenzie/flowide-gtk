@@ -5,16 +5,16 @@ use std::sync::{Arc, Mutex};
 
 use gdk_pixbuf::Pixbuf;
 use gio::prelude::*;
-use gtk::{
-    AboutDialog, AccelFlags, AccelGroup, Application, ApplicationWindow, FileChooserAction, FileChooserDialog,
-    FileFilter, Menu, MenuBar, MenuItem, ResponseType, ScrolledWindow, TextBuffer, WidgetExt, WindowPosition,
-};
+use gtk::{AboutDialog, AccelFlags, AccelGroup, Application, ApplicationWindow, FileChooserAction,
+          FileChooserDialog, FileFilter, Menu, MenuBar, MenuItem, ResponseType, ScrolledWindow,
+          TextBuffer, WidgetExt, WindowPosition, Widget};
 use gtk::prelude::*;
 use gtk_rs_state::gtk_refs;
 use lazy_static::lazy_static;
 
 use flowclib::deserializers::deserializer_helper;
 use ui_context::UIContext;
+use std::path::{Path, PathBuf};
 
 mod ide_runtime_client;
 
@@ -53,8 +53,9 @@ gtk_refs!(
     run_manifest_menu: gtk::MenuItem
 );
 
-fn resource(root: &str, path: &str) -> String {
-    format!("{}/resources/{}", root, path)
+// Return a Path(PathBuf) to a resource file that is part of the application
+fn resource(path: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join(path)
 }
 
 fn about_dialog() -> AboutDialog {
@@ -66,8 +67,7 @@ fn about_dialog() -> AboutDialog {
     p.set_version(Some(env!("CARGO_PKG_VERSION")));
     p.set_comments(Some(&format!("flowclib version: {}\nflowrlib version: {}",
                                  flowclib::info::version(), flowrlib::info::version())));
-    println!("pwd {:?}", std::env::current_dir());
-    if let Ok(image) = Pixbuf::from_file(resource(env!("CARGO_MANIFEST_DIR"), "icons/png/128x128.png")) {
+    if let Ok(image) = Pixbuf::from_file(resource("icons/png/128x128.png")) {
         p.set_logo(Some(&image));
     }
 
@@ -75,7 +75,6 @@ fn about_dialog() -> AboutDialog {
     //CARGO_PKG_DESCRIPTION
     //CARGO_PKG_REPOSITORY
 
-    // AboutDialog has a secondary credits section
     p.set_authors(&[env!("CARGO_PKG_AUTHORS")]);
 
     p
@@ -128,18 +127,18 @@ fn menu_bar(app_window: &ApplicationWindow) -> (MenuBar, AccelGroup, MenuItem, M
     let accelerator_group = AccelGroup::new();
     let menu_bar = MenuBar::new();
 
-    // File Menu
-    let file_menu = Menu::new();
-    let file = MenuItem::with_label("File");
+    // IDE Menu
+    let ide_menu = Menu::new();
+    let ide = MenuItem::with_label("IDE");
     let about = MenuItem::with_label("About");
     let quit = MenuItem::with_label("Quit");
-    file_menu.append(&about);
-    file_menu.append(&quit);
-    file.set_submenu(Some(&file_menu));
+    ide_menu.append(&about);
+    ide_menu.append(&quit);
+    ide.set_submenu(Some(&ide_menu));
     // `Primary` is `Ctrl` on Windows and Linux, and `command` on macOS
     let (key, modifier) = gtk::accelerator_parse("<Primary>Q");
     quit.add_accelerator("activate", &accelerator_group, key, modifier, AccelFlags::VISIBLE);
-    menu_bar.append(&file);
+    menu_bar.append(&ide);
 
     // Flow Menu
     let flow_menu = Menu::new();
@@ -220,6 +219,11 @@ fn manifest_viewer() -> (ScrolledWindow, TextBuffer) {
 //                let args: Vec<String> = arg_string.split(' ').map(|s| s.to_string()).collect();
 //                Response::Args(args)
 
+fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: &P) -> u32 {
+    let label = gtk::Label::new(Some(title));
+    notebook.append_page(child, Some(&label))
+}
+
 fn main_window(app_window: &ApplicationWindow,
                accelerator_group: AccelGroup,
                compile_flow_menu: MenuItem,
@@ -238,8 +242,11 @@ fn main_window(app_window: &ApplicationWindow,
 
     main_window.pack_start(&flow_view, true, true, 0);
     main_window.pack_start(&manifest_view, true, true, 0);
-    main_window.pack_start(&stdout_view, true, true, 0);
-    main_window.pack_start(&stderr_view, true, true, 0);
+
+    let mut notebook = gtk::Notebook::new();
+    let _ = create_tab(&mut notebook, "STDOUT", &stdout_view);
+    let _ = create_tab(&mut notebook, "STDERR", &stderr_view);
+    main_window.pack_start(&notebook, true, true, 0);
 
     widgets::WidgetRefs {
         app_window: app_window.clone(),
