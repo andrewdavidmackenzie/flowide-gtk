@@ -20,7 +20,7 @@ mod ide_runtime_client;
 
 mod ui_context;
 mod actions;
-mod cli_debug_client;//#![deny(missing_docs)]
+// mod cli_debug_client;//#![deny(missing_docs)]
 
 lazy_static! {
     static ref UICONTEXT: Arc<Mutex<UIContext>> = Arc::new(Mutex::new(UIContext::new()));
@@ -71,6 +71,7 @@ fn about_dialog() -> AboutDialog {
         p.set_logo(Some(&image));
     }
 
+    // TODO
     //CARGO_PKG_DESCRIPTION
     //CARGO_PKG_REPOSITORY
 
