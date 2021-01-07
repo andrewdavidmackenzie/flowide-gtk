@@ -1,10 +1,11 @@
-use gtk::{TextBufferExt, WidgetExt};
+use gtk::{ButtonsType, DialogFlags, TextBufferExt, WidgetExt, MessageDialog, MessageType, Window};
+use gtk::prelude::*;
 
 use flowclib::model::flow::Flow;
 use flowrlib::loader::Loader;
 use flowrstructs::manifest::Manifest;
 
-use crate::{widgets, ui_error, message};
+use crate::widgets;
 use crate::widgets::WidgetRefs;
 use std::rc::Rc;
 
@@ -50,7 +51,7 @@ impl UIContext {
                 match serde_json::to_string_pretty(&flow_found) {
                     Ok(flow_content) => self.set_flow_contents(Some(flow_content)),
                     Err(e) => {
-                        ui_error(&format!("Error serializing flow to toml: `{}`", &e.to_string()));
+                        UIContext::ui_error(&format!("Error serializing flow to toml: `{}`", &e.to_string()));
                         self.set_flow_contents(None);
                     }
                 }
@@ -79,7 +80,7 @@ impl UIContext {
     // Set the manifest url (where the compiled manifest is) and manifest object into the
     // `UIContext` for later use
     pub fn set_manifest(&mut self, url: Option<String>, manifest: Option<Manifest>) {
-        message(&format!("Manifest url set to '{:?}'", &url));
+        UIContext::message(&format!("Manifest url set to '{:?}'", &url));
         self.manifest_url = url;
         self.manifest = manifest;
 
@@ -97,7 +98,7 @@ impl UIContext {
                     Ok(manifest_content) => Self::set_manifest_contents(Some(manifest_content)),
                     Err(e) => {
                         Self::set_manifest_contents(None);
-                        ui_error(&format!("Could not convert manifest to Json for display: {}",
+                        UIContext::ui_error(&format!("Could not convert manifest to Json for display: {}",
                                           e));
                     }
                 }
@@ -150,6 +151,21 @@ impl UIContext {
         widgets::do_in_gtk_eventloop(|refs| {
             Self::clear_stdout(&refs);
             Self::clear_stderr(&refs);
+        });
+    }
+
+    // Pop-up a message dialog to display the error and an OK button
+    pub fn ui_error(message: &str) {
+        MessageDialog::new(None::<&Window>,
+                           DialogFlags::empty(),
+                           MessageType::Error,
+                           ButtonsType::Ok,
+                           message).run();
+    }
+
+    pub fn message(message: &str) {
+        widgets::do_in_gtk_eventloop(|refs| {
+            refs.status_message().set_label(message);
         });
     }
 }

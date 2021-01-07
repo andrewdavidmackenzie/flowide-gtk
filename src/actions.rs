@@ -9,7 +9,7 @@ use flowrlib::coordinator::{Submission, Coordinator};
 use flowrstructs::manifest::{DEFAULT_MANIFEST_FILENAME, Manifest};
 use provider::content::provider::MetaProvider;
 
-use crate::{message, ui_error, log_error};
+use crate::log_error;
 use crate::UICONTEXT;
 use crate::ide_runtime_client::IDERuntimeClient;
 use crate::ui_context::UIContext;
@@ -27,22 +27,22 @@ pub fn compile_flow() {
                     (Some(ref flow), Some(ref flow_url_str)) => {
                         let flow_clone = flow.clone();
                         let flow_url_clone = flow_url_str.clone();
-                        message("Compiling flow");
+                        UIContext::message("Compiling flow");
                         match compile::compile(&flow_clone) {
                             Ok(tables) => {
-                                message("Compiling provided implementations");
+                                UIContext::message("Compiling provided implementations");
                                 // TODO
                                 // compile_supplied_implementations(&mut tables, provided_implementations, release)?;
-                                message("Creating flow manifest");
+                                UIContext::message("Creating flow manifest");
                                 match generate::create_manifest(&flow, true, &flow_url_clone, &tables) {
                                     Ok(manifest) => context.set_manifest(Some(manifest_url(&flow_url_clone)), Some(manifest)),
-                                    Err(e) => ui_error(&e.to_string())
+                                    Err(e) => UIContext::ui_error(&e.to_string())
                                 }
                             }
-                            Err(e) => ui_error(&e.to_string())
+                            Err(e) => UIContext::ui_error(&e.to_string())
                         }
                     }
-                    _ => ui_error("No flow loaded to compile")
+                    _ => UIContext::ui_error("No flow loaded to compile")
                 }
             }
             _ => log_error("Could not access ui context")
@@ -69,7 +69,7 @@ pub fn open_flow(url: String) {
                     _ => log_error("Could not get access to uicontext")
                 }
             }
-            Err(e) => ui_error(&format!("Error while trying to open flow from url '{}': {}",
+            Err(e) => UIContext::ui_error(&format!("Error while trying to open flow from url '{}': {}",
                                         url, &e))
         }
     });
@@ -85,7 +85,7 @@ pub fn open_manifest(url: String) {
                     Err(_) => log_error("Could not lock UI Context")
                 }
             }
-            Err(e) => ui_error(&format!("Error loading manifest from url '{}': {}",
+            Err(e) => UIContext::ui_error(&format!("Error loading manifest from url '{}': {}",
                                         url, &e.to_string()))
         }
     });
@@ -103,14 +103,14 @@ pub fn run_manifest(args: Vec<String>) {
                                                                  1);
 
                                 UIContext::clear_pre_run();
-                                message("Submitting flow for execution");
+                                UIContext::message("Submitting flow for execution");
 
                                 IDERuntimeClient::start(runtime_connection, submission, args);
                             }
-                            Err(e) => ui_error(&format!("Could not make connection to server: {}", e))
+                            Err(e) => UIContext::ui_error(&format!("Could not make connection to server: {}", e))
                         }
                     }
-                    _ => ui_error("No manifest loaded to run")
+                    _ => UIContext::ui_error("No manifest loaded to run")
                 }
             }
             _ => log_error("Could not get access to uicontext and client")

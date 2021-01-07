@@ -6,7 +6,8 @@
 // use flowrlib::runtime::{Event, Response};
 // use flowrlib::lib.client_server::RuntimeClientConnection;
 use std::collections::HashMap;
-use crate::{widgets, ui_error, message};
+use crate::{widgets};
+use crate::UIContext;
 use image::{ImageBuffer, Rgb};
 use flowrlib::client_server::RuntimeClientConnection;
 use flowrlib::coordinator::Submission;
@@ -38,11 +39,11 @@ impl IDERuntimeClient {
     pub fn start(mut connection: RuntimeClientConnection,
                  submission: Submission, flow_args: Vec<String>) {
         if let Err(e) = connection.start() {
-            ui_error(&format!("Error while starting IDE Runtime client, creating connection: {}", e));
+            UIContext::ui_error(&format!("Error while starting IDE Runtime client, creating connection: {}", e));
         }
 
         if let Err(e) = connection.client_send(ClientSubmission(submission)) {
-            ui_error(&format!("Error while starting IDE Runtime client, client_send: {}", e));
+            UIContext::ui_error(&format!("Error while starting IDE Runtime client, client_send: {}", e));
         }
 
         let mut runtime_client = Self::new(flow_args, true /* display_metrics */);
@@ -52,13 +53,13 @@ impl IDERuntimeClient {
                 Ok(event) => {
                     let response = runtime_client.process_event(event);
                     if response == Response::ClientExiting {
-                        message("Flow execution ended");
+                        UIContext::message("Flow execution ended");
                         return;
                     }
 
                     let _ = connection.client_send(response);
                 }
-                Err(e) => ui_error(&format!("Error receiving Event in runtime client: {}", e))
+                Err(e) => UIContext::ui_error(&format!("Error receiving Event in runtime client: {}", e))
             }
         }
     }

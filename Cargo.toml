@@ -39,5 +39,5 @@ gtk-rs-state = "0.4.1"
 gdk = "0.13"
 gdk-pixbuf = "0.9"
 gio = "0.9"
-gtk = "0.9"
+gtk = {version = "0.9", features = ["v3_16"] }
 image = "=0.23.10"
