@@ -243,26 +243,25 @@ fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: 
     notebook.append_page(child, Some(&label))
 }
 
+// Create the main window, stacking up the Menu bar and other UI items
 fn main_window(app_window: &ApplicationWindow,
-               accelerator_group: AccelGroup,
                compile_flow_menu: MenuItem,
                run_manifest_menu: MenuItem) -> widgets::WidgetRefs {
-    app_window.add_accel_group(&accelerator_group);
-
     let main_window = gtk::Box::new(gtk::Orientation::Vertical, 10);
     main_window.set_border_width(6);
     main_window.set_vexpand(true);
     main_window.set_hexpand(true);
 
+    let mut notebook = gtk::Notebook::new();
     let (flow_view, flow_buffer) = flow_viewer();
     let (manifest_view, manifest_buffer) = manifest_viewer();
-    let (stdout_view, stdout_buffer) = stdio();
-    let (stderr_view, stderr_buffer) = stdio();
-
-    main_window.pack_start(&flow_view, true, true, 0);
-    main_window.pack_start(&manifest_view, true, true, 0);
+    let _ = create_tab(&mut notebook, "Flow", &flow_view);
+    let _ = create_tab(&mut notebook, "Manifest", &manifest_view);
+    main_window.pack_start(&notebook, true, true, 0);
 
     let mut notebook = gtk::Notebook::new();
+    let (stdout_view, stdout_buffer) = stdio();
+    let (stderr_view, stderr_buffer) = stdio();
     let _ = create_tab(&mut notebook, "STDOUT", &stdout_view);
     let _ = create_tab(&mut notebook, "STDERR", &stderr_view);
     main_window.pack_start(&notebook, true, true, 0);
@@ -291,7 +290,8 @@ fn build_ui(application: &Application) {
     });
 
     let (menu_bar, accelerator_group, compile_flow_menu, run_manifest_menu) = menu_bar(&app_window);
-    let widget_refs = main_window(&app_window, accelerator_group, compile_flow_menu, run_manifest_menu);
+    app_window.add_accel_group(&accelerator_group);
+    let widget_refs = main_window(&app_window, compile_flow_menu, run_manifest_menu);
 
     let v_box = gtk::Box::new(gtk::Orientation::Vertical, 10);
     v_box.pack_start(&menu_bar, false, false, 0);
