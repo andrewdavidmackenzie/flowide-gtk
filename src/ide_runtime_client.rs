@@ -6,7 +6,7 @@
 // use flowrlib::runtime::{Event, Response};
 // use flowrlib::lib.client_server::RuntimeClientConnection;
 use std::collections::HashMap;
-use crate::{widgets, ui_error};
+use crate::{widgets, ui_error, message};
 use image::{ImageBuffer, Rgb};
 use flowrlib::client_server::RuntimeClientConnection;
 use flowrlib::coordinator::Submission;
@@ -52,6 +52,7 @@ impl IDERuntimeClient {
                 Ok(event) => {
                     let response = runtime_client.process_event(event);
                     if response == Response::ClientExiting {
+                        message("Flow execution ended");
                         return;
                     }
 
@@ -65,7 +66,7 @@ impl IDERuntimeClient {
     fn process_event(&mut self, event: Event) -> Response {
         match event {
             Event::FlowStart => Response::Ack,
-            Event::FlowEnd(_metrics) => Response::Ack,
+            Event::FlowEnd(_metrics) => Response::ClientExiting,
             Event::StdoutEOF => Response::Ack,
             Event::Stdout(contents) => {
                 widgets::do_in_gtk_eventloop(|refs| {
