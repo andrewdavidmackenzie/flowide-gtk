@@ -64,7 +64,7 @@ impl UIContext {
     fn set_flow_contents(&mut self, content: Option<String>) {
         widgets::do_in_gtk_eventloop(|refs| {
             match content {
-                Some(text) => refs.manifest_buffer().set_text(&text),
+                Some(text) => refs.flow_buffer().set_text(&text),
                 None => {
                     let (mut start, mut end) = refs.flow_buffer().get_bounds();
                     refs.flow_buffer().delete(&mut start, &mut end);
