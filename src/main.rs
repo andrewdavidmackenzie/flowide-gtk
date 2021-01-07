@@ -123,11 +123,8 @@ fn compile_action(compile: &MenuItem) {
     });
 }
 
-fn menu_bar(app_window: &ApplicationWindow) -> (MenuBar, AccelGroup, MenuItem, MenuItem) {
-    let accelerator_group = AccelGroup::new();
-    let menu_bar = MenuBar::new();
-
-    // IDE Menu
+// IDE Menu
+fn ide_menu(app_window: &ApplicationWindow, accelerator_group: &AccelGroup) -> MenuItem {
     let ide_menu = Menu::new();
     let ide = MenuItem::with_label("IDE");
     let about = MenuItem::with_label("About");
@@ -137,10 +134,27 @@ fn menu_bar(app_window: &ApplicationWindow) -> (MenuBar, AccelGroup, MenuItem, M
     ide.set_submenu(Some(&ide_menu));
     // `Primary` is `Ctrl` on Windows and Linux, and `command` on macOS
     let (key, modifier) = gtk::accelerator_parse("<Primary>Q");
-    quit.add_accelerator("activate", &accelerator_group, key, modifier, AccelFlags::VISIBLE);
-    menu_bar.append(&ide);
+    quit.add_accelerator("activate", accelerator_group, key, modifier, AccelFlags::VISIBLE);
 
-    // Flow Menu
+    let window_weak = app_window.downgrade();
+    quit.connect_activate(move |_| unsafe {
+        let window = upgrade_weak!(window_weak);
+        window.destroy();
+    });
+    let window_weak = app_window.downgrade();
+    about.connect_activate(move |_| unsafe {
+        let ad = about_dialog();
+        let window = upgrade_weak!(window_weak);
+        ad.set_transient_for(Some(&window));
+        ad.run();
+        ad.destroy();
+    });
+
+    ide
+}
+
+// Flow Menu
+fn flow_menu(app_window: &ApplicationWindow) -> (MenuItem, MenuItem) {
     let flow_menu = Menu::new();
     let flow = MenuItem::with_label("Flow");
     let open_flow_menu_item = MenuItem::with_label("Open");
@@ -152,9 +166,11 @@ fn menu_bar(app_window: &ApplicationWindow) -> (MenuBar, AccelGroup, MenuItem, M
     open_action(app_window, &open_flow_menu_item, actions::open_flow);
     compile_action(&compile_flow_menu_item);
     compile_flow_menu_item.set_sensitive(false);
-    menu_bar.append(&flow);
+    (flow, compile_flow_menu_item)
+}
 
-    // Manifest Menu
+// Manifest Menu
+fn manifest_menu(app_window: &ApplicationWindow, accelerator_group: &AccelGroup) -> (MenuItem, MenuItem) {
     let manifest_menu = Menu::new();
     let manifest = MenuItem::with_label("Manifest");
     let open_manifest_menu = MenuItem::with_label("Open");
@@ -166,24 +182,27 @@ fn menu_bar(app_window: &ApplicationWindow) -> (MenuBar, AccelGroup, MenuItem, M
     open_action(app_window, &open_manifest_menu, actions::open_manifest);
     run_action(&run_manifest_menu);
     let (key, modifier) = gtk::accelerator_parse("<Primary>R");
-    run_manifest_menu.add_accelerator("activate", &accelerator_group, key, modifier, AccelFlags::VISIBLE);
+    run_manifest_menu.add_accelerator("activate", accelerator_group, key, modifier, AccelFlags::VISIBLE);
     run_manifest_menu.set_sensitive(false);
-    menu_bar.append(&manifest);
+    (manifest, run_manifest_menu)
+}
 
-    let window_weak = app_window.downgrade();
-    quit.connect_activate(move |_| unsafe {
-        let window = upgrade_weak!(window_weak);
-        window.destroy();
-    });
+// Create a Menu bar with the submenus on it
+fn menu_bar(app_window: &ApplicationWindow) -> (MenuBar, AccelGroup, MenuItem, MenuItem) {
+    let accelerator_group = AccelGroup::new();
+    let menu_bar = MenuBar::new();
 
-    let window_weak = app_window.downgrade();
-    about.connect_activate(move |_| unsafe {
-        let ad = about_dialog();
-        let window = upgrade_weak!(window_weak);
-        ad.set_transient_for(Some(&window));
-        ad.run();
-        ad.destroy();
-    });
+    // Create and add an "IDE" menu that has a quit accelerator
+    let ide_menu = ide_menu(&app_window, &accelerator_group);
+    menu_bar.append(&ide_menu);
+
+    // Create and append a "Flow" menu
+    let (flow_menu, compile_flow_menu_item) = flow_menu(&app_window);
+    menu_bar.append(&flow_menu);
+
+    // Create and append a "Manifest" menu
+    let (manifest_menu, run_manifest_menu) = manifest_menu(&app_window, &accelerator_group);
+    menu_bar.append(&manifest_menu);
 
     (menu_bar, accelerator_group, compile_flow_menu_item, run_manifest_menu)
 }
