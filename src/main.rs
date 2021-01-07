@@ -3,9 +3,7 @@ use std::env;
 use std::sync::{Arc, Mutex};
 
 use gio::prelude::*;
-use gtk::{Application, ApplicationWindow,
-          MenuItem, ScrolledWindow,
-          TextBuffer, WidgetExt, WindowPosition, Widget};
+use gtk::{Application, ApplicationWindow, MenuItem, ScrolledWindow, TextBuffer, WidgetExt, WindowPosition, Widget, Justification};
 use gtk::prelude::*;
 use gtk_rs_state::gtk_refs;
 use lazy_static::lazy_static;
@@ -34,7 +32,8 @@ gtk_refs!(
     stdout: gtk::TextBuffer,
     stderr: gtk::TextBuffer,
     compile_flow_menu: gtk::MenuItem,
-    run_manifest_menu: gtk::MenuItem
+    run_manifest_menu: gtk::MenuItem,
+    status_message: gtk::Label
 );
 
 fn stdio() -> (ScrolledWindow, TextBuffer) {
@@ -77,8 +76,8 @@ fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: 
 fn main_window(app_window: &ApplicationWindow,
                compile_flow_menu: MenuItem,
                run_manifest_menu: MenuItem) -> widgets::WidgetRefs {
-    let main_window = gtk::Box::new(gtk::Orientation::Vertical, 10);
-    main_window.set_border_width(6);
+    let main_window = gtk::Box::new(gtk::Orientation::Vertical, 4);
+    main_window.set_border_width(3);
     main_window.set_vexpand(true);
     main_window.set_hexpand(true);
 
@@ -96,6 +95,21 @@ fn main_window(app_window: &ApplicationWindow,
     let _ = create_tab(&mut notebook, "STDERR", &stderr_view);
     main_window.pack_start(&notebook, true, true, 0);
 
+    // Status bar at the bottom
+    let status_bar = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    status_bar.set_border_width(1);
+    status_bar.set_margin_bottom(0);
+    status_bar.set_margin_top(0);
+    status_bar.set_vexpand(false);
+    status_bar.set_hexpand(true);
+    let status_message = gtk::Label::new(Some("Ready"));
+    status_message.set_justify(Justification::Right);
+    status_message.set_margin_top(0);
+    status_message.set_margin_bottom(0);
+    status_message.set_xalign(1.0);
+    status_bar.pack_start(&status_message, true, true, 0);
+    main_window.pack_start(&status_bar, true, true, 0);
+
     widgets::WidgetRefs {
         app_window: app_window.clone(),
         main_window,
@@ -104,7 +118,8 @@ fn main_window(app_window: &ApplicationWindow,
         stdout: stdout_buffer,
         stderr: stderr_buffer,
         compile_flow_menu,
-        run_manifest_menu
+        run_manifest_menu,
+        status_message,
     }
 }
 
@@ -134,16 +149,8 @@ fn build_ui(application: &Application) {
     widgets::init_storage(widget_refs);
 }
 
-pub fn ui_error(message: &str) {
-    println!("UI message: {}", message);
-}
-
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
 pub fn log_error(message: &str) {
-    println!("UI message: {}", message);
-}
-
-pub fn message(message: &str) {
     println!("UI message: {}", message);
 }
 
