@@ -33,6 +33,10 @@ impl UIContext {
         self.flow = flow;
         self.flow_url = url;
 
+        if let Some(flow_url) = &self.flow_url {
+            UIContext::message(&format!("Flow loaded from '{:?}'", flow_url));
+        }
+
         // Serialize the flow into toml for ui display - or clear if None
         match &self.flow {
             Some(flow_found) => {
@@ -80,9 +84,12 @@ impl UIContext {
     // Set the manifest url (where the compiled manifest is) and manifest object into the
     // `UIContext` for later use
     pub fn set_manifest(&mut self, url: Option<String>, manifest: Option<Manifest>) {
-        UIContext::message(&format!("Manifest url set to '{:?}'", &url));
         self.manifest_url = url;
         self.manifest = manifest;
+
+        if let Some(manifest_url) = &self.manifest_url {
+            UIContext::message(&format!("Compiled flow Manifest at '{:?}'", manifest_url));
+        }
 
         match &self.manifest {
             Some(manifest_found) => {
