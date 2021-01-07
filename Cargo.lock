@@ -330,9 +330,9 @@ dependencies = [
 
 [[package]]
 name = "flowc"
-version = "0.31.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "172d892630735c5a1d006ec208f6bb8ad8c395280f020ad2d77dffa4e24ea97a"
+checksum = "41234ace03b416593b557993d7a8ccd3f19730da5251bea2021815a1ee4c7037"
 dependencies = [
  "clap",
  "error-chain",
@@ -376,9 +376,9 @@ dependencies = [
 
 [[package]]
 name = "flowr"
-version = "0.31.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6815c23350afaaa970dbb297d6a6d33d291f46e5b7a5af8027bf2364d75966f2"
+checksum = "3774f6fd1a2eb1d371fddb34e7c4167b771c8cd1d3708a9fbbf5e50f49e3c4f3"
 dependencies = [
  "clap",
  "ctrlc",
@@ -401,9 +401,9 @@ dependencies = [
 
 [[package]]
 name = "flowrstructs"
-version = "0.25.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92643e842923c880848f5a182944778c9ec73369a5eac23c2f2901ae67c569d3"
+checksum = "6bfc094110e9493afc2809285b3ad8a6fa33627065c3cdd4dda40ef6d0cefd94"
 dependencies = [
  "error-chain",
  "flow_impl",
@@ -416,9 +416,9 @@ dependencies = [
 
 [[package]]
 name = "flowstdlib"
-version = "0.31.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "268779adca3aa8eba24294e8234c57f43987122600c377bb08c0ae572c72ac86"
+checksum = "b64ca12cc3c7f464d3c82528a8c84aa792300000ab669d677900a3ac18023032"
 dependencies = [
  "flow_impl",
  "flow_impl_derive",
@@ -1436,9 +1436,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.57"
+version = "1.0.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4211ce9909eb971f111059df92c45640aad50a619cf55cd76476be803c4c68e6"
+checksum = "cc60a3d73ea6594cd712d830cc1f0390fd71542d8c8cd24e70cc54cdfd5e05d5"
 dependencies = [
  "proc-macro2",
  "quote",

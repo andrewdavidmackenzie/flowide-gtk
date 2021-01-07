@@ -5,12 +5,14 @@ use flowclib::compiler::loader;
 use flowclib::generator::generate;
 use flowclib::model::flow::Flow;
 use flowclib::model::process::Process::FlowProcess;
-use flowrlib::coordinator::Submission;
+use flowrlib::coordinator::{Submission, Coordinator};
 use flowrstructs::manifest::{DEFAULT_MANIFEST_FILENAME, Manifest};
 use provider::content::provider::MetaProvider;
 
 use crate::{message, ui_error, log_error};
 use crate::UICONTEXT;
+use crate::ide_runtime_client::IDERuntimeClient;
+use crate::ui_context::UIContext;
 
 fn manifest_url(flow_url_str: &str) -> String {
     let flow_url = Url::parse(&flow_url_str).unwrap();
@@ -29,7 +31,8 @@ pub fn compile_flow() {
                         match compile::compile(&flow_clone) {
                             Ok(tables) => {
                                 message("Compiling provided implementations");
-                                //                        compile_supplied_implementations(&mut tables, provided_implementations, release)?;
+                                // TODO
+                                // compile_supplied_implementations(&mut tables, provided_implementations, release)?;
                                 message("Creating flow manifest");
                                 match generate::create_manifest(&flow, true, &flow_url_clone, &tables) {
                                     Ok(manifest) => context.set_manifest(Some(manifest_url(&flow_url_clone)), Some(manifest)),
@@ -88,32 +91,24 @@ pub fn open_manifest(url: String) {
     });
 }
 
-fn set_args(arg: Vec<String>) {
-    match UICONTEXT.try_lock() {
-        Ok(ref mut context) => {
-            let mut guard = context.client.lock().unwrap();
-            guard.set_args(arg);
-        }
-        _ => log_error("Could not get access to uicontext and client")
-    }
-}
-
 pub fn run_manifest(args: Vec<String>) {
     std::thread::spawn(move || {
         match UICONTEXT.try_lock() {
             Ok(ref mut context) => {
                 match &context.manifest_url {
                     Some(manifest_url) => {
-                        set_args(args);
-                        // let debug_client = CLI_DEBUG_CLIENT;
-                        let _submission = Submission::new(&manifest_url.to_string(),
-                                                          1,
-                                                          false);
-                        // let mut coordinator = Coordinator::new(1);
-                        // coordinator.init();
-                        //
-                        // coordinator.submit(submission);
-                        message("Submitted flow for execution");
+                        match Coordinator::server(1, true /* native */, false, false, None) {
+                            Ok(runtime_connection) => {
+                                let submission = Submission::new(&manifest_url.to_string(),
+                                                                 1);
+
+                                UIContext::clear_pre_run();
+                                message("Submitting flow for execution");
+
+                                IDERuntimeClient::start(runtime_connection, submission, args);
+                            }
+                            Err(e) => ui_error(&format!("Could not make connection to server: {}", e))
+                        }
                     }
                     _ => ui_error("No manifest loaded to run")
                 }

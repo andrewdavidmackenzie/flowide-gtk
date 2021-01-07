@@ -20,7 +20,7 @@ mod ide_runtime_client;
 
 mod ui_context;
 mod actions;
-mod cli_debug_client;//#![deny(missing_docs)]
+// mod cli_debug_client;//#![deny(missing_docs)]
 
 lazy_static! {
     static ref UICONTEXT: Arc<Mutex<UIContext>> = Arc::new(Mutex::new(UIContext::new()));
@@ -71,6 +71,7 @@ fn about_dialog() -> AboutDialog {
         p.set_logo(Some(&image));
     }
 
+    // TODO
     //CARGO_PKG_DESCRIPTION
     //CARGO_PKG_REPOSITORY
 
@@ -256,7 +257,7 @@ fn build_ui(application: &Application) {
     let app_window = ApplicationWindow::new(application);
     app_window.set_title(env!("CARGO_PKG_NAME"));
     app_window.set_position(WindowPosition::Center);
-    app_window.set_size_request(400, 400);
+    app_window.set_size_request(600, 400);
 
     app_window.connect_delete_event(move |_, _| {
         gtk::main_quit();
@@ -275,13 +276,6 @@ fn build_ui(application: &Application) {
     app_window.show_all();
 
     widgets::init_storage(widget_refs);
-}
-
-fn set_panic_hook() {
-    // When the `console_error_panic_hook` feature is enabled, we can call the
-    // `set_panic_hook` function to get better error messages if we ever panic.
-    #[cfg(feature = "console_error_panic_hook")]
-        console_error_panic_hook::set_once();
 }
 
 pub fn ui_error(message: &str) {
@@ -306,14 +300,10 @@ fn main() -> Result<(), String> {
 //    let log_level_arg = get_log_level(&document);
 //    init_logging(log_level_arg);
 
-    set_panic_hook();
-
     let application = Application::new(Some("net.mackenzie-serres.flow.ide"), Default::default())
         .map_err(|_| "failed to initialize GTK application")?;
 
-    application.connect_activate(move |app|
-        build_ui(app)
-    );
+    application.connect_activate(move |app| build_ui(app));
 
     application.run(&std::env::args().collect::<Vec<_>>());
 

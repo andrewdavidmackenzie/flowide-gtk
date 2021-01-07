@@ -6,9 +6,15 @@
 // use flowrlib::runtime::{Event, Response};
 // use flowrlib::lib.client_server::RuntimeClientConnection;
 use std::collections::HashMap;
-
-// use crate::widgets;
+use crate::{widgets, ui_error, message};
 use image::{ImageBuffer, Rgb};
+use flowrlib::client_server::RuntimeClientConnection;
+use flowrlib::coordinator::Submission;
+use flowrlib::runtime::{Event, Response};
+use std::fs::File;
+use flowrlib::runtime::Response::ClientSubmission;
+use std::io::Write;
+use gtk::TextBufferExt;
 
 #[derive(Debug, Clone)]
 pub struct IDERuntimeClient {
@@ -18,9 +24,9 @@ pub struct IDERuntimeClient {
 }
 
 impl IDERuntimeClient {
-    pub fn new(display_metrics: bool) -> Self {
+    pub fn new(args: Vec<String>, display_metrics: bool) -> Self {
         IDERuntimeClient {
-            args: vec!(),
+            args,
             image_buffers: HashMap::<String, ImageBuffer<Rgb<u8>, Vec<u8>>>::new(),
             display_metrics,
         }
@@ -29,88 +35,74 @@ impl IDERuntimeClient {
     /*
         Enter  a loop where we receive events as a client and respond to them
      */
-    // pub fn start(connection: RuntimeClientConnection,
-    //              #[cfg(feature = "metrics")]
-    //              display_metrics: bool,
-    // ) {
-    //     Self::capture_control_c(&connection);
-    //
-    //     let mut runtime_client = IDERuntimeClient::new(display_metrics);
-    //
-    //     loop {
-    //         match connection.client_recv() {
-    //             Ok(event) => {
-    //                 let response = runtime_client.process_event(event);
-    //                 if response == Response::ClientExiting {
-    //                     return;
-    //                 }
-    //                 let _ = connection.client_send(response);
-    //             }
-    //             Err(_) => {
-    //                 return;
-    //             }
-    //         }
-    //     }
-    // }
+    pub fn start(mut connection: RuntimeClientConnection,
+                 submission: Submission, flow_args: Vec<String>) {
+        if let Err(e) = connection.start() {
+            ui_error(&format!("Error while starting IDE Runtime client, creating connection: {}", e));
+        }
 
-//     fn capture_control_c(_connection: &RuntimeClientConnection) {
-//         // let connection_clone = connection.clone();
-//         // let _ = ctrlc::set_handler(move || {
-//         //     let _ = connection_clone.send(Response::EnterDebugger);
-//         // });
-//     }
-//
-//     fn process_event(&mut self, event: Event) -> Response {
-//         match event {
-//             Event::FlowStart => Response::Ack,
-//             #[cfg(feature = "debugger")]
-//             Event::FlowEnd(_) => Response::Ack,
-//             #[cfg(not(feature = "debugger"))]
-//             Event::FlowEnd => Response::Ack,
-//             Event::StdoutEOF => Response::Ack,
-//             Event::Stdout(contents) => {
-//                 widgets::do_in_gtk_eventloop(|refs| {
-//                     refs.stdout().insert_at_cursor(&format!("{}\n", contents));
-//                 });
-//                 Response::Ack
-//             }
-//             Event::Stderr(contents) => {
-//                 widgets::do_in_gtk_eventloop(|refs| {
-//                     refs.stderr().insert_at_cursor(&format!("{}\n", contents));
-//                 });
-//                 Response::Ack
-//             }
-//             Event::GetStdin => {
-// //                Response::Stdin("bla bla".to_string()) // TODO
-//                 Response::Error("Could not read Stdin".into())
-//             }
-//             Event::GetLine => {
-//                 Response::Stdin("bla bla".to_string())  // TODO
-//             }
-//             Event::GetArgs => {
-//                 Response::Args(self.args.clone())
-//             }
-//             Event::Write(filename, bytes) => {
-//                 let mut file = File::create(filename).unwrap();
-//                 file.write_all(bytes.as_slice()).unwrap();
-//                 Response::Ack
-//             }
-//             Event::PixelWrite((_x, _y), (_r, _g, _b), (_width, _height), _name) => {
-//                 // let image = self.image_buffers.entry(name)
-//                 //     .or_insert(RgbImage::new(width, height));
-//                 // image.put_pixel(x, y, Rgb([r, g, b]));
-//                 Response::Ack
-//             }
-//             Event::StderrEOF => Response::Ack,
-//         }
-//     }
-//
-//     // This function is called by the runtime_function to send a command to the runtime_client
-//     pub fn send_event(&mut self, event: Event) -> Response {
-//         self.process_event(event)
-//     }
+        if let Err(e) = connection.client_send(ClientSubmission(submission)) {
+            ui_error(&format!("Error while starting IDE Runtime client, client_send: {}", e));
+        }
 
-    pub fn set_args(&mut self, args: Vec<String>) {
-        self.args = args;
+        let mut runtime_client = Self::new(flow_args, true /* display_metrics */);
+
+        loop {
+            match connection.client_recv() {
+                Ok(event) => {
+                    let response = runtime_client.process_event(event);
+                    if response == Response::ClientExiting {
+                        message("Flow execution ended");
+                        return;
+                    }
+
+                    let _ = connection.client_send(response);
+                }
+                Err(e) => ui_error(&format!("Error receiving Event in runtime client: {}", e))
+            }
+        }
+    }
+
+    fn process_event(&mut self, event: Event) -> Response {
+        match event {
+            Event::FlowStart => Response::Ack,
+            Event::FlowEnd(_metrics) => Response::ClientExiting,
+            Event::StdoutEOF => Response::Ack,
+            Event::Stdout(contents) => {
+                widgets::do_in_gtk_eventloop(|refs| {
+                    refs.stdout().insert_at_cursor(&format!("{}\n", contents));
+                });
+                Response::Ack
+            }
+            Event::Stderr(contents) => {
+                widgets::do_in_gtk_eventloop(|refs| {
+                    refs.stderr().insert_at_cursor(&format!("{}\n", contents));
+                });
+                Response::Ack
+            }
+            Event::GetStdin => {
+//                Response::Stdin("bla bla".to_string()) // TODO
+                Response::Error("Could not read Stdin".into())
+            }
+            Event::GetLine => {
+                Response::Stdin("bla bla".to_string())  // TODO
+            }
+            Event::GetArgs => {
+                Response::Args(self.args.clone())
+            }
+            Event::Write(filename, bytes) => {
+                let mut file = File::create(filename).unwrap();
+                file.write_all(bytes.as_slice()).unwrap();
+                Response::Ack
+            }
+            Event::PixelWrite((_x, _y), (_r, _g, _b), (_width, _height), _name) => {
+                // let image = self.image_buffers.entry(name)
+                //     .or_insert(RgbImage::new(width, height));
+                // image.put_pixel(x, y, Rgb([r, g, b]));
+                Response::Ack
+            }
+            Event::StderrEOF => Response::Ack,
+            Event::Invalid => Response::Ack
+        }
     }
 }

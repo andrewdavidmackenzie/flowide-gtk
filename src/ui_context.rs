@@ -1,13 +1,12 @@
-use std::sync::{Arc, Mutex};
-
 use gtk::{TextBufferExt, WidgetExt};
 
 use flowclib::model::flow::Flow;
 use flowrlib::loader::Loader;
 use flowrstructs::manifest::Manifest;
 
-use crate::ide_runtime_client::IDERuntimeClient;
 use crate::{widgets, ui_error, message};
+use crate::widgets::WidgetRefs;
+use std::rc::Rc;
 
 pub struct UIContext {
     pub loader: Option<Loader>,
@@ -15,7 +14,6 @@ pub struct UIContext {
     pub flow_url: Option<String>,
     pub manifest: Option<Manifest>,
     pub manifest_url: Option<String>,
-    pub client: Arc<Mutex<IDERuntimeClient>>,
 }
 
 impl UIContext {
@@ -26,7 +24,6 @@ impl UIContext {
             flow_url: None,
             manifest: None,
             manifest_url: None,
-            client: Arc::new(Mutex::new(IDERuntimeClient::new(true))),
         }
     }
 
@@ -39,8 +36,12 @@ impl UIContext {
         match &self.flow {
             Some(flow_found) => {
                 // enable menu item that can be used to compile the loaded flow
+                // clear contents of manifest and other widgets
                 widgets::do_in_gtk_eventloop(|refs| {
                     refs.compile_flow_menu().set_sensitive(true);
+                    Self::clear_manifest_contents(&refs);
+                    Self::clear_stdout(&refs);
+                    Self::clear_stderr(&refs);
                 });
 
                 // TODO also serialize to toml
@@ -69,11 +70,8 @@ impl UIContext {
     fn set_flow_contents(&mut self, content: Option<String>) {
         widgets::do_in_gtk_eventloop(|refs| {
             match content {
-                Some(text) => refs.manifest_buffer().set_text(&text),
-                None => {
-                    let (mut start, mut end) = refs.flow_buffer().get_bounds();
-                    refs.flow_buffer().delete(&mut start, &mut end);
-                }
+                Some(text) => refs.flow_buffer().set_text(&text),
+                None => Self::clear_flow_contents(&refs)
             }
         });
     }
@@ -87,8 +85,12 @@ impl UIContext {
 
         match &self.manifest {
             Some(manifest_found) => {
-                // We have a valid manifest so enable running of it
-                Self::enable_manifest_run(true);
+                // We have a valid manifest so enable running of it, clear other widgets
+                widgets::do_in_gtk_eventloop(|refs| {
+                    Self::enable_manifest_run(&refs, true);
+                    Self::clear_stdout(&refs);
+                    Self::clear_stderr(&refs);
+                });
 
                 // TODO combinator here
                 match serde_json::to_string_pretty(manifest_found) {
@@ -101,17 +103,17 @@ impl UIContext {
                 }
             }
             None => {
-                Self::enable_manifest_run(false);
-                Self::set_manifest_contents(None);
+                widgets::do_in_gtk_eventloop(|refs| {
+                    Self::enable_manifest_run(&refs, false);
+                    Self::set_manifest_contents(None);
+                });
             }
         }
     }
 
     // Enable or Disable any UI elements that are used to trigger running of the compiled manifest
-    fn enable_manifest_run(enable: bool) {
-        widgets::do_in_gtk_eventloop(|refs| {
-            refs.run_manifest_menu().set_sensitive(enable);
-        });
+    fn enable_manifest_run(refs: &Rc<WidgetRefs>, enable: bool) {
+        refs.run_manifest_menu().set_sensitive(enable);
     }
 
     // Show the text representing the manifest in json, or clear the text widget
@@ -119,11 +121,35 @@ impl UIContext {
         widgets::do_in_gtk_eventloop(|refs| {
             match content {
                 Some(text) => refs.manifest_buffer().set_text(&text),
-                None => {
-                    let (mut start, mut end) = refs.manifest_buffer().get_bounds();
-                    refs.manifest_buffer().delete(&mut start, &mut end);
-                }
+                None => Self::clear_manifest_contents(&refs)
             }
+        });
+    }
+
+    fn clear_flow_contents(refs: &Rc<WidgetRefs>) {
+        let (mut start, mut end) = refs.flow_buffer().get_bounds();
+        refs.flow_buffer().delete(&mut start, &mut end);
+    }
+
+    fn clear_manifest_contents(refs: &Rc<WidgetRefs>) {
+        let (mut start, mut end) = refs.manifest_buffer().get_bounds();
+        refs.manifest_buffer().delete(&mut start, &mut end);
+    }
+
+    fn clear_stdout(refs: &Rc<WidgetRefs>) {
+        let (mut start, mut end) = refs.stdout().get_bounds();
+        refs.stdout().delete(&mut start, &mut end);
+    }
+
+    fn clear_stderr(refs: &Rc<WidgetRefs>) {
+        let (mut start, mut end) = refs.stdout().get_bounds();
+        refs.stdout().delete(&mut start, &mut end);
+    }
+
+    pub fn clear_pre_run() {
+        widgets::do_in_gtk_eventloop(|refs| {
+            Self::clear_stdout(&refs);
+            Self::clear_stderr(&refs);
         });
     }
 }
