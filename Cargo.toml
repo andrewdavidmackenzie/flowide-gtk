@@ -15,17 +15,19 @@ name = "flowide"
 path = "src/main.rs"
 
 [features]
-default = ["debugger", "metrics"]
+default = ["metrics"]
 debugger = []
 metrics = []  # feature for tracking of metrics during execution
 
 [dependencies]
-flow_impl = "0.21.0"
-flowc = "0.31.0"
+flow_impl = "0.21"
+flowc = "0.33"
 # Enable debugger feature in flowrstructs
-flowrstructs = { version = "0.25.0", features = ["debugger"] }
+#flowrstructs = { version = "0.25.0", features = ["debugger"] }
+flowrstructs = "0.33"
 # Do not enable the "distributed" feature for flowrlib
-flowr = { version = "0.31.0", default-features = false, features = ["debugger", "native", "metrics", "checks"] }
+#flowr = { version = "0.33.0", default-features = false, features = ["debugger", "native", "metrics", "checks"] }
+flowr = { version = "0.33.0", default-features = false, features = ["native", "metrics", "checks"] }
 provider = "0.25.0"
 
 toml = "0.4"
