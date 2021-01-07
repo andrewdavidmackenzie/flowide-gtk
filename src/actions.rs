@@ -12,6 +12,7 @@ use provider::content::provider::MetaProvider;
 use crate::{message, ui_error, log_error};
 use crate::UICONTEXT;
 use crate::ide_runtime_client::IDERuntimeClient;
+use crate::ui_context::UIContext;
 
 fn manifest_url(flow_url_str: &str) -> String {
     let flow_url = Url::parse(&flow_url_str).unwrap();
@@ -101,6 +102,7 @@ pub fn run_manifest(args: Vec<String>) {
                                 let submission = Submission::new(&manifest_url.to_string(),
                                                                  1);
 
+                                UIContext::clear_pre_run();
                                 message("Submitting flow for execution");
 
                                 IDERuntimeClient::start(runtime_connection, submission, args);
