@@ -18,6 +18,7 @@ mod options;
 // mod cli_debug_client;//#![deny(missing_docs)]
 
 use ui_context::UIContext;
+use url::Url;
 
 
 lazy_static! {
@@ -118,7 +119,7 @@ fn main_window(app_window: &ApplicationWindow,
     }
 }
 
-fn build_ui(application: &Application, _flow_args: &Vec<String>, _stdin_file: &Option<String>) {
+fn build_ui(application: &Application, url: &Option<Url>, _flow_args: &Vec<String>, _stdin_file: &Option<String>) {
     let app_window = ApplicationWindow::new(application);
     app_window.set_title(env!("CARGO_PKG_NAME"));
     app_window.set_position(WindowPosition::Center);
@@ -144,6 +145,11 @@ fn build_ui(application: &Application, _flow_args: &Vec<String>, _stdin_file: &O
     app_window.show_all();
 
     widgets::init_storage(widget_refs);
+
+    // do any action prior to running application
+    if let Some(ref flow_url) = url {
+        actions::open_flow(flow_url.to_string());
+    }
 }
 
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
@@ -156,12 +162,7 @@ fn main() {
         if let Ok(application) = Application::new(Some("net.mackenzie-serres.flow.ide"), Default::default()) {
             let (url, flow_args, stdin_file) = options::parse_args();
 
-            application.connect_activate(move |app| build_ui(app, &flow_args, &stdin_file));
-
-            // do any action prior to running application
-            if let Some(flow_url) = url {
-                // actions::open_flow(flow_url.into_string());
-            }
+            application.connect_activate(move |app| build_ui(app, &url, &flow_args, &stdin_file));
 
             process::exit(application.run(&[]));
         }

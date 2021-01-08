@@ -12,7 +12,6 @@ use std::rc::Rc;
 pub struct UIContext {
     pub loader: Option<Loader>,
     pub flow: Option<Flow>,
-    pub flow_url: Option<String>,
     pub manifest: Option<Manifest>,
     pub manifest_url: Option<String>,
 }
@@ -22,19 +21,17 @@ impl UIContext {
         UIContext {
             loader: None,
             flow: None,
-            flow_url: None,
             manifest: None,
             manifest_url: None,
         }
     }
 
     // Set the flow url and flow object into the `UIContext` for later use
-    pub fn set_flow(&mut self, url: Option<String>, flow: Option<Flow>) {
+    pub fn set_flow(&mut self, flow: Option<Flow>) {
         self.flow = flow;
-        self.flow_url = url;
 
-        if let Some(flow_url) = &self.flow_url {
-            UIContext::message(&format!("Flow loaded from '{:?}'", flow_url));
+        if let Some(flow_loaded) = &self.flow {
+            UIContext::message(&format!("Flow loaded from '{:?}'", flow_loaded.source_url));
         }
 
         // Serialize the flow into toml for ui display - or clear if None
