@@ -106,7 +106,7 @@ impl UIContext {
                     Err(e) => {
                         Self::set_manifest_contents(None);
                         UIContext::ui_error(&format!("Could not convert manifest to Json for display: {}",
-                                          e));
+                                                     e));
                     }
                 }
             }
