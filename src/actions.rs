@@ -16,17 +16,17 @@ use crate::ui_context::UIContext;
 
 fn manifest_url(flow_url_str: &str) -> String {
     let flow_url = Url::parse(&flow_url_str).unwrap();
-    flow_url.join(DEFAULT_MANIFEST_FILENAME).unwrap().to_string()
+    flow_url.join(&format!("{}.json", DEFAULT_MANIFEST_FILENAME)).unwrap().to_string()
 }
 
 pub fn compile_flow() {
     std::thread::spawn(move || {
         match UICONTEXT.try_lock() {
             Ok(ref mut context) => {
-                match (&context.flow, &context.flow_url) {
-                    (Some(ref flow), Some(ref flow_url_str)) => {
+                match context.flow {
+                    Some(ref flow) => {
                         let flow_clone = flow.clone();
-                        let flow_url_clone = flow_url_str.clone();
+                        let flow_url = flow.source_url.clone();
                         UIContext::message("Compiling flow");
                         match compile::compile(&flow_clone) {
                             Ok(tables) => {
@@ -34,8 +34,8 @@ pub fn compile_flow() {
                                 // TODO
                                 // compile_supplied_implementations(&mut tables, provided_implementations, release)?;
                                 UIContext::message("Creating flow manifest");
-                                match generate::create_manifest(&flow, true, &flow_url_clone, &tables) {
-                                    Ok(manifest) => context.set_manifest(Some(manifest_url(&flow_url_clone)), Some(manifest)),
+                                match generate::create_manifest(&flow, true, &flow_url, &tables) {
+                                    Ok(manifest) => context.set_manifest(Some(manifest_url(&flow_url)), Some(manifest)),
                                     Err(e) => UIContext::ui_error(&e.to_string())
                                 }
                             }
@@ -65,7 +65,7 @@ pub fn open_flow(url: String) {
         match load_flow_from_url(&url) {
             Ok(flow) => {
                 match UICONTEXT.try_lock() {
-                    Ok(mut context) => context.set_flow(Some(url), Some(flow)),
+                    Ok(mut context) => context.set_flow(Some(flow)),
                     _ => log_error("Could not get access to uicontext")
                 }
             }

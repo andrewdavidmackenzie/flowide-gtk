@@ -1,22 +1,25 @@
 //! The `flowide` is an IDE for `flow` programs.
-use std::env;
+use std::{env, process};
 use std::sync::{Arc, Mutex};
+use log::error;
 
 use gio::prelude::*;
-use gtk::{Application, ApplicationWindow, MenuItem, ScrolledWindow, TextBuffer, WidgetExt, WindowPosition, Widget, Justification};
+use gtk::{Application, ApplicationWindow, Justification, MenuItem, ScrolledWindow, TextBuffer, Widget, WidgetExt, WindowPosition};
 use gtk::prelude::*;
 use gtk_rs_state::gtk_refs;
 use lazy_static::lazy_static;
-
-use ui_context::UIContext;
 
 // Modules
 mod ide_runtime_client;
 mod menu;
 mod ui_context;
 mod actions;
-
+mod options;
 // mod cli_debug_client;//#![deny(missing_docs)]
+
+use ui_context::UIContext;
+use url::Url;
+
 
 lazy_static! {
     static ref UICONTEXT: Arc<Mutex<UIContext>> = Arc::new(Mutex::new(UIContext::new()));
@@ -59,13 +62,6 @@ fn manifest_viewer() -> (ScrolledWindow, TextBuffer) {
     scroll.add(&view);
     (scroll, view.get_buffer().unwrap())
 }
-
-
-// TODO get args from a view
-//                let (start, end) = runtime_context.args.get_bounds();
-//                let arg_string = runtime_context.args.get_text(&start, &end, false).unwrap().to_string();
-//                let args: Vec<String> = arg_string.split(' ').map(|s| s.to_string()).collect();
-//                Response::Args(args)
 
 fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: &P) -> u32 {
     let label = gtk::Label::new(Some(title));
@@ -123,15 +119,17 @@ fn main_window(app_window: &ApplicationWindow,
     }
 }
 
-fn build_ui(application: &Application) {
+fn build_ui(application: &Application, url: &Option<Url>, _flow_args: &Vec<String>, _stdin_file: &Option<String>) {
     let app_window = ApplicationWindow::new(application);
     app_window.set_title(env!("CARGO_PKG_NAME"));
     app_window.set_position(WindowPosition::Center);
     app_window.set_size_request(600, 400);
 
     app_window.connect_delete_event(move |_, _| {
-        gtk::main_quit();
-        Inhibit(false)
+        process::exit(1);
+        // This is the recommended code but it causes an error message on exit currently
+        // gtk::main_quit();
+        // Inhibit(false)
     });
 
     let (menu_bar, accelerator_group, compile_flow_menu, run_manifest_menu) = menu::menu_bar(&app_window);
@@ -147,28 +145,29 @@ fn build_ui(application: &Application) {
     app_window.show_all();
 
     widgets::init_storage(widget_refs);
+
+    // do any action prior to running application
+    if let Some(ref flow_url) = url {
+        actions::open_flow(flow_url.to_string());
+    }
 }
 
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
 pub fn log_error(message: &str) {
-    println!("UI message: {}", message);
+    error!("UI message: {}", message);
 }
 
-fn main() -> Result<(), String> {
-    if gtk::init().is_err() {
-        return Err("Failed to initialize GTK.".to_string());
+fn main() {
+    if gtk::init().is_ok() {
+        if let Ok(application) = Application::new(Some("net.mackenzie-serres.flow.ide"), Default::default()) {
+            let (url, flow_args, stdin_file) = options::parse_args();
+
+            application.connect_activate(move |app| build_ui(app, &url, &flow_args, &stdin_file));
+
+            process::exit(application.run(&[]));
+        }
     }
 
-// TODO  read log level from UI or args and log to a logging UI widget?
-//    let log_level_arg = get_log_level(&document);
-//    init_logging(log_level_arg);
-
-    let application = Application::new(Some("net.mackenzie-serres.flow.ide"), Default::default())
-        .map_err(|_| "failed to initialize GTK application")?;
-
-    application.connect_activate(move |app| build_ui(app));
-
-    application.run(&std::env::args().collect::<Vec<_>>());
-
-    Ok(())
+    eprintln!("Failed to initialize GTK application");
+    process::exit(-1);
 }

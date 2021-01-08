@@ -356,6 +356,7 @@ dependencies = [
 name = "flowide"
 version = "0.32.0"
 dependencies = [
+ "clap",
  "flow_impl",
  "flowc",
  "flowr",
@@ -370,6 +371,7 @@ dependencies = [
  "log",
  "provider",
  "serde_json",
+ "simplog",
  "toml 0.4.10",
  "url",
 ]
