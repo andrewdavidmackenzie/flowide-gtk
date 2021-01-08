@@ -70,7 +70,7 @@ pub fn open_flow(url: String) {
                 }
             }
             Err(e) => UIContext::ui_error(&format!("Error while trying to open flow from url '{}': {}",
-                                        url, &e))
+                                                   url, &e))
         }
     });
 }
@@ -86,7 +86,7 @@ pub fn open_manifest(url: String) {
                 }
             }
             Err(e) => UIContext::ui_error(&format!("Error loading manifest from url '{}': {}",
-                                        url, &e.to_string()))
+                                                   url, &e.to_string()))
         }
     });
 }
