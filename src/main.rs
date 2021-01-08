@@ -1,6 +1,7 @@
 //! The `flowide` is an IDE for `flow` programs.
 use std::{env, process};
 use std::sync::{Arc, Mutex};
+use log::error;
 
 use gio::prelude::*;
 use gtk::{Application, ApplicationWindow, Justification, MenuItem, ScrolledWindow, TextBuffer, Widget, WidgetExt, WindowPosition};
@@ -147,9 +148,8 @@ fn build_ui(application: &Application, _flow_args: &Vec<String>, _stdin_file: &O
 
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
 pub fn log_error(message: &str) {
-    println!("UI message: {}", message);
+    error!("UI message: {}", message);
 }
-
 
 fn main() {
     if gtk::init().is_ok() {
