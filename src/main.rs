@@ -45,6 +45,7 @@ fn stdio() -> (ScrolledWindow, TextBuffer) {
     let scroll = gtk::ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
     let view = gtk::TextView::new();
     view.set_editable(false);
+    view.set_monospace(true);
     scroll.add(&view);
     (scroll, view.get_buffer().unwrap())
 }
