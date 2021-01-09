@@ -32,6 +32,7 @@ gtk_refs!(
     main_window: gtk::Box,
     flow_buffer: gtk::TextBuffer,
     manifest_buffer: gtk::TextBuffer,
+    flow_notebook: gtk::Notebook,
     args_buffer: gtk::TextBuffer,
     stdout: gtk::TextBuffer,
     stderr: gtk::TextBuffer,
@@ -96,13 +97,13 @@ fn main_window(app_window: &ApplicationWindow,
         args_buffer.set_text(&flow_args.join(" "));
     }
 
-    //
-    let mut notebook = gtk::Notebook::new();
+    // Notebook for flow and manifest content
+    let mut flow_notebook = gtk::Notebook::new();
     let (flow_view, flow_buffer) = flow_viewer();
     let (manifest_view, manifest_buffer) = manifest_viewer();
-    let _ = create_tab(&mut notebook, "Flow", &flow_view);
-    let _ = create_tab(&mut notebook, "Manifest", &manifest_view);
-    main_window.pack_start(&notebook, true, true, 0);
+    let _ = create_tab(&mut flow_notebook, "Flow", &flow_view);
+    let _ = create_tab(&mut flow_notebook, "Manifest", &manifest_view);
+    main_window.pack_start(&flow_notebook, true, true, 0);
 
     let mut notebook = gtk::Notebook::new();
     let (stdout_view, stdout_buffer) = stdio();
@@ -131,6 +132,7 @@ fn main_window(app_window: &ApplicationWindow,
         main_window,
         flow_buffer,
         manifest_buffer,
+        flow_notebook,
         args_buffer,
         stdout: stdout_buffer,
         stderr: stderr_buffer,

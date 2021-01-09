@@ -125,7 +125,10 @@ impl UIContext {
     fn set_manifest_contents(content: Option<String>) {
         widgets::do_in_gtk_eventloop(|refs| {
             match content {
-                Some(text) => refs.manifest_buffer().set_text(&text),
+                Some(text) => {
+                    refs.manifest_buffer().set_text(&text);
+                    refs.flow_notebook().set_property_page(1); // Select manifest page
+                },
                 None => Self::clear_manifest_contents(&refs)
             }
         });
