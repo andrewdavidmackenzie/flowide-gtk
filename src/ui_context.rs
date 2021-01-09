@@ -1,4 +1,4 @@
-use gtk::{ButtonsType, DialogFlags, TextBufferExt, WidgetExt, MessageDialog, MessageType, Window};
+use gtk::{ButtonsType, DialogFlags, TextBufferExt, WidgetExt, MessageDialog, MessageType};
 use gtk::prelude::*;
 
 use flowclib::model::flow::Flow;
@@ -72,7 +72,10 @@ impl UIContext {
     fn set_flow_contents(&mut self, content: Option<String>) {
         widgets::do_in_gtk_eventloop(|refs| {
             match content {
-                Some(text) => refs.flow_buffer().set_text(&text),
+                Some(text) => {
+                    refs.flow_buffer().set_text(&text);
+                    refs.flow_notebook().set_property_page(0); // Select flow tab when new contents
+                },
                 None => Self::clear_flow_contents(&refs)
             }
         });
@@ -125,7 +128,10 @@ impl UIContext {
     fn set_manifest_contents(content: Option<String>) {
         widgets::do_in_gtk_eventloop(|refs| {
             match content {
-                Some(text) => refs.manifest_buffer().set_text(&text),
+                Some(text) => {
+                    refs.manifest_buffer().set_text(&text);
+                    refs.flow_notebook().set_property_page(1); // Select manifest page
+                },
                 None => Self::clear_manifest_contents(&refs)
             }
         });
@@ -160,11 +166,13 @@ impl UIContext {
 
     // Pop-up a message dialog to display the error and an OK button
     pub fn ui_error(message: &str) {
-        MessageDialog::new(None::<&Window>,
-                           DialogFlags::empty(),
-                           MessageType::Error,
-                           ButtonsType::Ok,
-                           message).run();
+        widgets::do_in_gtk_eventloop(|refs| {
+            MessageDialog::new(Some(&refs.app_window()),
+                               DialogFlags::MODAL,
+                               MessageType::Error,
+                               ButtonsType::Ok,
+                               message).run();
+        });
     }
 
     pub fn message(message: &str) {

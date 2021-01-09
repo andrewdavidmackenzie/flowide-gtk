@@ -56,13 +56,6 @@ fn open_action<F: 'static>(window: &ApplicationWindow, open: &MenuItem, action_f
     });
 }
 
-fn run_action(run: &MenuItem) {
-    run.connect_activate(move |_| {
-        // TODO open a dialog or read from a textview the args to pass to the flow being run
-        actions::run_manifest(vec!());
-    });
-}
-
 fn compile_action(compile: &MenuItem) {
     compile.connect_activate(move |_| {
         actions::compile_flow();
@@ -153,7 +146,6 @@ fn manifest_menu(app_window: &ApplicationWindow, accelerator_group: &AccelGroup)
     manifest_menu.append(&run_manifest_menu);
     manifest.set_submenu(Some(&manifest_menu));
     open_action(app_window, &open_manifest_menu, actions::open_manifest);
-    run_action(&run_manifest_menu);
     let (key, modifier) = gtk::accelerator_parse("<Primary>R");
     run_manifest_menu.add_accelerator("activate", accelerator_group, key, modifier, AccelFlags::VISIBLE);
     run_manifest_menu.set_sensitive(false);
