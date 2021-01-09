@@ -26,8 +26,8 @@ lazy_static! {
 }
 
 gtk_refs!(
-    pub mod widgets;                // The macro emits a new module with this name
-    struct WidgetRefs;              // The macro emits a struct with this name containing:
+    pub mod widgets;   // The macro emits a new module with this name
+    struct WidgetRefs; // The macro emits a struct with this name containing references to following fields
     app_window: gtk::ApplicationWindow,
     main_window: gtk::Box,
     flow_buffer: gtk::TextBuffer,
@@ -74,7 +74,7 @@ fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: 
 fn main_window(app_window: &ApplicationWindow,
                flow_args: &Vec<String>,
                compile_flow_menu: MenuItem,
-               run_manifest_menu: MenuItem) -> widgets::WidgetRefs {
+               run_manifest_menu: &MenuItem) -> widgets::WidgetRefs {
     let main_window = gtk::Box::new(gtk::Orientation::Vertical, 4);
     main_window.set_border_width(3);
     main_window.set_vexpand(true);
@@ -137,9 +137,20 @@ fn main_window(app_window: &ApplicationWindow,
         stdout: stdout_buffer,
         stderr: stderr_buffer,
         compile_flow_menu,
-        run_manifest_menu,
+        run_manifest_menu: run_manifest_menu.clone(),
         status_message,
     }
+}
+
+fn run_action(run: &MenuItem, args_buffer: gtk::TextBuffer) {
+    run.connect_activate(move |_| {
+        let mut args: Vec<String> = vec!();
+        let (start, end) = args_buffer.get_bounds();
+        if let Some(arg_string) = args_buffer.get_text(&start, &end, false) {
+            args = arg_string.split(' ').map(|s| s.to_string()).collect();
+        }
+        actions::run_manifest(args);
+    });
 }
 
 fn build_ui(application: &Application, url: &Option<Url>, flow_args: &Vec<String>, _stdin_file: &Option<String>) {
@@ -155,9 +166,14 @@ fn build_ui(application: &Application, url: &Option<Url>, flow_args: &Vec<String
         // Inhibit(false)
     });
 
+    // Create menu bar
     let (menu_bar, accelerator_group, compile_flow_menu, run_manifest_menu) = menu::menu_bar(&app_window);
+
+    // Add menu accelerators
     app_window.add_accel_group(&accelerator_group);
-    let widget_refs = main_window(&app_window, flow_args, compile_flow_menu, run_manifest_menu);
+
+    // Create the main window
+    let widget_refs = main_window(&app_window, flow_args, compile_flow_menu, &run_manifest_menu);
 
     let v_box = gtk::Box::new(gtk::Orientation::Vertical, 10);
     v_box.pack_start(&menu_bar, false, false, 0);
@@ -166,6 +182,9 @@ fn build_ui(application: &Application, url: &Option<Url>, flow_args: &Vec<String
     app_window.add(&v_box);
 
     app_window.show_all();
+
+    // wire up the run action that needs the menu item and the args widget
+    run_action(&run_manifest_menu, widget_refs.args_buffer.clone());
 
     widgets::init_storage(widget_refs);
 
@@ -184,9 +203,7 @@ fn main() {
     if gtk::init().is_ok() {
         if let Ok(application) = Application::new(Some("net.mackenzie-serres.flow.ide"), Default::default()) {
             let (url, flow_args, stdin_file) = options::parse_args();
-
             application.connect_activate(move |app| build_ui(app, &url, &flow_args, &stdin_file));
-
             process::exit(application.run(&[]));
         }
     }
