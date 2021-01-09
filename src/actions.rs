@@ -98,8 +98,9 @@ pub fn open_manifest(url: String) {
     });
 }
 
-/// Background action that executes a compiled flow manifest on a thread. This may result in output to
-/// stdout, stderr or other runtime functions that will be reflected on the UI.
+/// Background action that executes a compiled flow manifest on a thread passing the supplied array
+/// of arguments to the runtime functions for the flow to use.
+/// This may result in output to stdout, stderr or other runtime functions that will be reflected on the UI.
 pub fn run_manifest(args: Vec<String>) {
     std::thread::spawn(move || {
         match UICONTEXT.try_lock() {
