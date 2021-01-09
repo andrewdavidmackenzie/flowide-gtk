@@ -113,7 +113,7 @@ pub fn run_manifest(args: Vec<String>) {
                                                                  1);
 
                                 UIContext::clear_pre_run();
-                                UIContext::message("Submitting flow for execution");
+                                UIContext::message(&format!("Submitting manifest for execution with args: '{:?}'", args));
 
                                 IDERuntimeClient::start(runtime_connection, submission, args);
                             }
