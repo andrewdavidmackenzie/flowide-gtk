@@ -35,9 +35,7 @@ pub fn compile_flow() {
                                         manifest_url = manifest_url.join(&format!("{}.json", DEFAULT_MANIFEST_FILENAME)).unwrap();
                                         UIContext::message(&format!("Creating flow manifest at: {}", manifest_url.to_string()));
                                         match generate::create_manifest(&flow, true, &manifest_url.to_string(), &tables) {
-                                            Ok(manifest) => {
-                                                context.set_manifest(Some(manifest_url.to_string()), Some(manifest))
-                                            }
+                                            Ok(manifest) => context.set_manifest(Some(manifest_url.to_string()), Some(manifest))
                                             Err(e) => {
                                                 UIContext::ui_error(&e.to_string());
                                                 UIContext::message("Creation of flow manifest failed");
