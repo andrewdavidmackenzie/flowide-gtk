@@ -2,8 +2,8 @@ use url::Url;
 
 use flowclib::compiler::compile;
 use flowclib::compiler::loader;
+use flowclib::compiler::compile_wasm;
 use flowclib::generator::generate;
-use flowclib::model::flow::Flow;
 use flowclib::model::process::Process::FlowProcess;
 use flowrlib::coordinator::{Submission, Coordinator};
 use flowrstructs::manifest::{DEFAULT_MANIFEST_FILENAME, Manifest};
@@ -14,11 +14,8 @@ use crate::UICONTEXT;
 use crate::ide_runtime_client::IDERuntimeClient;
 use crate::ui_context::UIContext;
 
-fn manifest_url(flow_url_str: &str) -> String {
-    let flow_url = Url::parse(&flow_url_str).unwrap();
-    flow_url.join(&format!("{}.json", DEFAULT_MANIFEST_FILENAME)).unwrap().to_string()
-}
-
+/// Background action that compiles a flow on a thread and then updates the UI with the resulting
+/// compiled flow manifest
 pub fn compile_flow() {
     std::thread::spawn(move || {
         match UICONTEXT.try_lock() {
@@ -29,20 +26,34 @@ pub fn compile_flow() {
                         let flow_url = flow.source_url.clone();
                         UIContext::message("Compiling flow");
                         match compile::compile(&flow_clone) {
-                            Ok(tables) => {
+                            Ok(mut tables) => {
                                 UIContext::message("Compiling provided implementations");
-                                // TODO
-                                // compile_supplied_implementations(&mut tables, provided_implementations, release)?;
-                                UIContext::message("Creating flow manifest");
-                                match generate::create_manifest(&flow, true, &flow_url, &tables) {
-                                    Ok(manifest) => context.set_manifest(Some(manifest_url(&flow_url)), Some(manifest)),
+                                match compile_wasm::compile_supplied_implementations(&mut tables, false) {
+                                    Ok(result) => {
+                                        UIContext::message(&result);
+                                        UIContext::message("Creating flow manifest");
+                                        match generate::create_manifest(&flow, true, &flow_url, &tables) {
+                                            Ok(manifest) => {
+                                                let manifest_url = Url::parse(&flow_url).unwrap();
+                                                manifest_url.join(&format!("{}.json", DEFAULT_MANIFEST_FILENAME)).unwrap();
+                                                context.set_manifest(Some(manifest_url.to_string()), Some(manifest))
+                                            }
+                                            Err(e) => {
+                                                UIContext::ui_error(&e.to_string());
+                                                UIContext::message("Creation of flow manifest failed");
+                                            }
+                                        }
+                                    }
                                     Err(e) => UIContext::ui_error(&e.to_string())
                                 }
                             }
                             Err(e) => UIContext::ui_error(&e.to_string())
                         }
                     }
-                    _ => UIContext::ui_error("No flow loaded to compile")
+                    _ => {
+                        UIContext::ui_error("No flow loaded to compile");
+                        UIContext::message("Flow compilation failed");
+                    }
                 }
             }
             _ => log_error("Could not access ui context")
@@ -50,31 +61,27 @@ pub fn compile_flow() {
     });
 }
 
-fn load_flow_from_url(url: &str) -> Result<Flow, String> {
-    let provider = MetaProvider {};
-
-    match loader::load(url, &provider)
-        .map_err(|e| format!("Could not load flow context: '{}'", e.to_string()))? {
-        FlowProcess(flow) => Ok(flow),
-        _ => Err(format!("Process loaded from Url: '{}' was not of type 'Flow'", url))
-    }
-}
-
+/// Load a flow from 'url' in a background thread and then update the UI with a JSON representation
+/// of it.
 pub fn open_flow(url: String) {
     std::thread::spawn(move || {
-        match load_flow_from_url(&url) {
-            Ok(flow) => {
+        let provider = MetaProvider {};
+
+        match loader::load(&url, &provider) {
+            Ok(FlowProcess(flow)) => {
                 match UICONTEXT.try_lock() {
                     Ok(mut context) => context.set_flow(Some(flow)),
                     _ => log_error("Could not get access to uicontext")
                 }
             }
-            Err(e) => UIContext::ui_error(&format!("Error while trying to open flow from url '{}': {}",
-                                                   url, &e))
+            Ok(_) => UIContext::ui_error(&format!("Process loaded from Url: '{}' was not of type 'Flow'", url)),
+            _ => UIContext::ui_error(&format!("Could not load flow from Url: '{}'", url))
         }
     });
 }
 
+/// A background action that opens an existing compiled flow manifest on a thread and updates the UI
+/// with it.
 pub fn open_manifest(url: String) {
     std::thread::spawn(move || {
         let provider = MetaProvider {};
@@ -91,6 +98,8 @@ pub fn open_manifest(url: String) {
     });
 }
 
+/// Background action that executes a compiled flow manifest on a thread. This may result in output to
+/// stdout, stderr or other runtime functions that will be reflected on the UI.
 pub fn run_manifest(args: Vec<String>) {
     std::thread::spawn(move || {
         match UICONTEXT.try_lock() {

@@ -32,6 +32,7 @@ gtk_refs!(
     main_window: gtk::Box,
     flow_buffer: gtk::TextBuffer,
     manifest_buffer: gtk::TextBuffer,
+    args_buffer: gtk::TextBuffer,
     stdout: gtk::TextBuffer,
     stderr: gtk::TextBuffer,
     compile_flow_menu: gtk::MenuItem,
@@ -70,6 +71,7 @@ fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: 
 
 // Create the main window, stacking up the Menu bar and other UI items
 fn main_window(app_window: &ApplicationWindow,
+               flow_args: &Vec<String>,
                compile_flow_menu: MenuItem,
                run_manifest_menu: MenuItem) -> widgets::WidgetRefs {
     let main_window = gtk::Box::new(gtk::Orientation::Vertical, 4);
@@ -77,6 +79,24 @@ fn main_window(app_window: &ApplicationWindow,
     main_window.set_vexpand(true);
     main_window.set_hexpand(true);
 
+    // args bar at the top
+    let args_bar = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+    args_bar.set_vexpand(false);
+    args_bar.set_hexpand(true);
+    // with a label
+    let label = gtk::Label::new(Some("Args:"));
+    label.set_margin_end(10);
+    args_bar.pack_start(&label, false, true, 0);
+    // and a text view in it
+    let args_view = gtk::TextView::new();
+    args_bar.pack_start(&args_view, true, true, 0);
+    main_window.pack_start(&args_bar, false, true, 0);
+    let args_buffer = args_view.get_buffer().unwrap();
+    if !flow_args.is_empty() {
+        args_buffer.set_text(&flow_args.join(" "));
+    }
+
+    //
     let mut notebook = gtk::Notebook::new();
     let (flow_view, flow_buffer) = flow_viewer();
     let (manifest_view, manifest_buffer) = manifest_viewer();
@@ -92,7 +112,7 @@ fn main_window(app_window: &ApplicationWindow,
     main_window.pack_start(&notebook, true, true, 0);
 
     // Status bar at the bottom
-    let status_bar = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    let status_bar = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     status_bar.set_border_width(1);
     status_bar.set_margin_bottom(0);
     status_bar.set_margin_top(0);
@@ -104,13 +124,14 @@ fn main_window(app_window: &ApplicationWindow,
     status_message.set_margin_bottom(0);
     status_message.set_xalign(1.0);
     status_bar.pack_start(&status_message, true, true, 0);
-    main_window.pack_start(&status_bar, true, true, 0);
+    main_window.pack_start(&status_bar, false, true, 0);
 
     widgets::WidgetRefs {
         app_window: app_window.clone(),
         main_window,
         flow_buffer,
         manifest_buffer,
+        args_buffer,
         stdout: stdout_buffer,
         stderr: stderr_buffer,
         compile_flow_menu,
@@ -119,7 +140,7 @@ fn main_window(app_window: &ApplicationWindow,
     }
 }
 
-fn build_ui(application: &Application, url: &Option<Url>, _flow_args: &Vec<String>, _stdin_file: &Option<String>) {
+fn build_ui(application: &Application, url: &Option<Url>, flow_args: &Vec<String>, _stdin_file: &Option<String>) {
     let app_window = ApplicationWindow::new(application);
     app_window.set_title(env!("CARGO_PKG_NAME"));
     app_window.set_position(WindowPosition::Center);
@@ -134,7 +155,7 @@ fn build_ui(application: &Application, url: &Option<Url>, _flow_args: &Vec<Strin
 
     let (menu_bar, accelerator_group, compile_flow_menu, run_manifest_menu) = menu::menu_bar(&app_window);
     app_window.add_accel_group(&accelerator_group);
-    let widget_refs = main_window(&app_window, compile_flow_menu, run_manifest_menu);
+    let widget_refs = main_window(&app_window, flow_args, compile_flow_menu, run_manifest_menu);
 
     let v_box = gtk::Box::new(gtk::Orientation::Vertical, 10);
     v_box.pack_start(&menu_bar, false, false, 0);

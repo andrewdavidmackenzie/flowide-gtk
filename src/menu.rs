@@ -58,7 +58,8 @@ fn open_action<F: 'static>(window: &ApplicationWindow, open: &MenuItem, action_f
 
 fn run_action(run: &MenuItem) {
     run.connect_activate(move |_| {
-        // TODO open a dialog or read from a textview the args to pass to the flow being run
+        // TODO read args from widget
+
         actions::run_manifest(vec!());
     });
 }
