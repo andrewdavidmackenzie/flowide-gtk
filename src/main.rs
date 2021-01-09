@@ -147,7 +147,9 @@ fn run_action(run: &MenuItem, args_buffer: gtk::TextBuffer) {
         let mut args: Vec<String> = vec!();
         let (start, end) = args_buffer.get_bounds();
         if let Some(arg_string) = args_buffer.get_text(&start, &end, false) {
-            args = arg_string.split(' ').map(|s| s.to_string()).collect();
+            if !arg_string.trim().is_empty() {
+                args = arg_string.split(' ').map(|s| s.to_string()).collect();
+            }
         }
         actions::run_manifest(args);
     });
