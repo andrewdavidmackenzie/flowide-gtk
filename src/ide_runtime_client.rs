@@ -1,10 +1,3 @@
-// use std::fs::File;
-// use std::io::prelude::*;
-//
-// use gtk::TextBufferExt;
-
-// use flowrlib::runtime::{Event, Response};
-// use flowrlib::lib.client_server::RuntimeClientConnection;
 use std::collections::HashMap;
 use crate::{widgets};
 use crate::UIContext;
@@ -25,7 +18,8 @@ pub struct IDERuntimeClient {
 }
 
 impl IDERuntimeClient {
-    pub fn new(args: Vec<String>, display_metrics: bool) -> Self {
+    // Create a new Runtime Client - an IDE version
+    fn new(args: Vec<String>, display_metrics: bool) -> Self {
         IDERuntimeClient {
             args,
             image_buffers: HashMap::<String, ImageBuffer<Rgb<u8>, Vec<u8>>>::new(),
@@ -33,9 +27,7 @@ impl IDERuntimeClient {
         }
     }
 
-    /*
-        Enter  a loop where we receive events as a client and respond to them
-     */
+    /// Enter a client for runtime that runs in a loop receiving events and responding to them
     pub fn start(mut connection: RuntimeClientConnection,
                  submission: Submission, flow_args: Vec<String>) {
         if let Err(e) = connection.start() {

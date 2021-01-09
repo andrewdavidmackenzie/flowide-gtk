@@ -26,8 +26,8 @@ flowc = "0.34"
 #flowrstructs = { version = "0.25.0", features = ["debugger"] }
 flowrstructs = "0.33"
 # Do not enable the "distributed" feature for flowrlib
-#flowr = { version = "0.34.0", default-features = false, features = ["debugger", "native", "metrics", "checks"] }
-flowr = { version = "0.34.0", default-features = false, features = ["native", "metrics", "checks"] }
+#flowr = { version = "0.34.1", default-features = false, features = ["debugger", "native", "metrics", "checks"] }
+flowr = { version = "0.34.1", default-features = false, features = ["native", "metrics", "checks"] }
 provider = "0.25.0"
 
 clap = "~2"

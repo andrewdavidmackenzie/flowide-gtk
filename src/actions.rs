@@ -31,11 +31,11 @@ pub fn compile_flow() {
                                 match compile_wasm::compile_supplied_implementations(&mut tables, false) {
                                     Ok(result) => {
                                         UIContext::message(&result);
-                                        UIContext::message("Creating flow manifest");
-                                        match generate::create_manifest(&flow, true, &flow_url, &tables) {
+                                        let mut manifest_url = Url::parse(&flow_url).unwrap();
+                                        manifest_url = manifest_url.join(&format!("{}.json", DEFAULT_MANIFEST_FILENAME)).unwrap();
+                                        UIContext::message(&format!("Creating flow manifest at: {}", manifest_url.to_string()));
+                                        match generate::create_manifest(&flow, true, &manifest_url.to_string(), &tables) {
                                             Ok(manifest) => {
-                                                let manifest_url = Url::parse(&flow_url).unwrap();
-                                                manifest_url.join(&format!("{}.json", DEFAULT_MANIFEST_FILENAME)).unwrap();
                                                 context.set_manifest(Some(manifest_url.to_string()), Some(manifest))
                                             }
                                             Err(e) => {
@@ -109,12 +109,9 @@ pub fn run_manifest(args: Vec<String>) {
                     Some(manifest_url) => {
                         match Coordinator::server(1, true /* native */, false, false, None) {
                             Ok(runtime_connection) => {
-                                let submission = Submission::new(&manifest_url.to_string(),
-                                                                 1);
-
                                 UIContext::clear_pre_run();
                                 UIContext::message(&format!("Submitting manifest for execution with args: '{:?}'", args));
-
+                                let submission = Submission::new(&manifest_url.to_string(), 1);
                                 IDERuntimeClient::start(runtime_connection, submission, args);
                             }
                             Err(e) => UIContext::ui_error(&format!("Could not make connection to server: {}", e))
