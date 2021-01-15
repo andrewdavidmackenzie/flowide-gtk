@@ -5,9 +5,10 @@ use flowclib::model::flow::Flow;
 use flowrlib::loader::Loader;
 use flowrstructs::manifest::Manifest;
 
-use crate::widgets;
+use crate::{widgets, FLOW_GRAPH_PAGE};
 use crate::widgets::WidgetRefs;
 use std::rc::Rc;
+use crate::MANIFEST_PAGE;
 
 pub struct UIContext {
     pub loader: Option<Loader>,
@@ -46,14 +47,16 @@ impl UIContext {
                     Self::clear_stderr(&refs);
                 });
 
+                Self::set_flow_graph_contents(flow_found);
+
                 // TODO also serialize to toml
                 // but it looks like their is an ambiguity as it reports an error
                 // see https://stackoverflow.com/questions/57560593/why-do-i-get-an-unsupportedtype-error-when-serializing-to-toml-with-a-manually-i
                 match serde_json::to_string_pretty(&flow_found) {
-                    Ok(flow_content) => self.set_flow_contents(Some(flow_content)),
+                    Ok(flow_content) => self.set_flow_json_contents(Some(flow_content)),
                     Err(e) => {
                         UIContext::ui_error(&format!("Error serializing flow to toml: `{}`", &e.to_string()));
-                        self.set_flow_contents(None);
+                        self.set_flow_json_contents(None);
                     }
                 }
             }
@@ -61,22 +64,30 @@ impl UIContext {
                 // disable menu item that can be used to compile the loaded flow
                 widgets::do_in_gtk_eventloop(|refs| {
                     refs.compile_flow_menu().set_sensitive(false);
+                    Self::clear_flow_graph_contents(&refs);
                 });
 
-                self.set_flow_contents(None)
+                self.set_flow_json_contents(None);
             }
         };
     }
 
+    fn set_flow_graph_contents(_graph: &Flow) {
+        widgets::do_in_gtk_eventloop(|_refs| {
+                    // TODO
+        });
+    }
+
     // Show the text representing the flow in toml, or clear the text widget
-    fn set_flow_contents(&mut self, content: Option<String>) {
+    fn set_flow_json_contents(&mut self, content: Option<String>) {
         widgets::do_in_gtk_eventloop(|refs| {
             match content {
                 Some(text) => {
                     refs.flow_buffer().set_text(&text);
-                    refs.flow_notebook().set_property_page(0); // Select flow tab when new contents
+                    // Select flow graph view tab when new flow loaded
+                    refs.flow_notebook().set_property_page(FLOW_GRAPH_PAGE);
                 },
-                None => Self::clear_flow_contents(&refs)
+                None => Self::clear_flow_json_contents(&refs)
             }
         });
     }
@@ -130,14 +141,19 @@ impl UIContext {
             match content {
                 Some(text) => {
                     refs.manifest_buffer().set_text(&text);
-                    refs.flow_notebook().set_property_page(1); // Select manifest page
+                    refs.flow_notebook().set_property_page(MANIFEST_PAGE); // Select manifest page
                 },
                 None => Self::clear_manifest_contents(&refs)
             }
         });
     }
 
-    fn clear_flow_contents(refs: &Rc<WidgetRefs>) {
+    fn clear_flow_graph_contents(_refs: &Rc<WidgetRefs>) {
+        // let (mut start, mut end) = refs.flow_buffer().get_bounds();
+        // refs.flow_buffer().delete(&mut start, &mut end);
+    }
+
+    fn clear_flow_json_contents(refs: &Rc<WidgetRefs>) {
         let (mut start, mut end) = refs.flow_buffer().get_bounds();
         refs.flow_buffer().delete(&mut start, &mut end);
     }

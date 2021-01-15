@@ -20,6 +20,10 @@ mod options;
 use ui_context::UIContext;
 use url::Url;
 
+// Tabs/Pages in the notebook
+const FLOW_GRAPH_PAGE: i32 = 0;
+const _FLOW_JSON_PAGE: i32 = 1;
+const MANIFEST_PAGE: i32 = 2;
 
 lazy_static! {
     static ref UICONTEXT: Arc<Mutex<UIContext>> = Arc::new(Mutex::new(UIContext::new()));
@@ -50,7 +54,15 @@ fn stdio() -> (ScrolledWindow, TextBuffer) {
     (scroll, view.get_buffer().unwrap())
 }
 
-fn flow_viewer() -> (ScrolledWindow, TextBuffer) {
+fn flow_graph_viewer() -> ScrolledWindow {
+    let scroll = gtk::ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
+    // let view = gtk::TextView::new();
+    // view.set_editable(false);
+    // scroll.add(&view);
+    scroll
+}
+
+fn flow_json_viewer() -> (ScrolledWindow, TextBuffer) {
     let scroll = gtk::ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
     let view = gtk::TextView::new();
     view.set_editable(false);
@@ -81,7 +93,7 @@ fn main_window(app_window: &ApplicationWindow,
     main_window.set_vexpand(true);
     main_window.set_hexpand(true);
 
-    // args bar at the top
+    // args bar
     let args_bar = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     args_bar.set_vexpand(false);
     args_bar.set_hexpand(true);
@@ -100,9 +112,11 @@ fn main_window(app_window: &ApplicationWindow,
 
     // Notebook for flow and manifest content
     let mut flow_notebook = gtk::Notebook::new();
-    let (flow_view, flow_buffer) = flow_viewer();
+    let flow_graph_view = flow_graph_viewer();
+    let _ = create_tab(&mut flow_notebook, "Flow", &flow_graph_view);
+    let (flow_json_view, flow_buffer) = flow_json_viewer();
+    let _ = create_tab(&mut flow_notebook, "Flow (json)", &flow_json_view);
     let (manifest_view, manifest_buffer) = manifest_viewer();
-    let _ = create_tab(&mut flow_notebook, "Flow", &flow_view);
     let _ = create_tab(&mut flow_notebook, "Manifest", &manifest_view);
     main_window.pack_start(&flow_notebook, true, true, 0);
 
