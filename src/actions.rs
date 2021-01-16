@@ -10,7 +10,7 @@ use flowrstructs::manifest::{DEFAULT_MANIFEST_FILENAME, Manifest};
 use provider::content::provider::MetaProvider;
 
 use crate::log_error;
-use crate::UICONTEXT;
+use crate::build_ui::UICONTEXT;
 use crate::ide_runtime_client::IDERuntimeClient;
 use crate::ui_context::UIContext;
 

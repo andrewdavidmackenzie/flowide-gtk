@@ -1,14 +1,16 @@
 use std::collections::HashMap;
-use crate::{widgets};
-use crate::UIContext;
-use image::{ImageBuffer, Rgb};
+use std::fs::File;
+use std::io::Write;
+
 use flowrlib::client_server::RuntimeClientConnection;
 use flowrlib::coordinator::Submission;
 use flowrlib::runtime::{Event, Response};
-use std::fs::File;
 use flowrlib::runtime::Response::ClientSubmission;
-use std::io::Write;
 use gtk::TextBufferExt;
+use image::{ImageBuffer, Rgb};
+
+use crate::build_ui::widgets;
+use crate::ui_context::UIContext;
 
 #[derive(Debug, Clone)]
 pub struct IDERuntimeClient {

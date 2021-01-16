@@ -1,14 +1,13 @@
-use gtk::{ButtonsType, DialogFlags, TextBufferExt, WidgetExt, MessageDialog, MessageType};
+use gtk::{ButtonsType, DialogFlags, MessageDialog, MessageType};
 use gtk::prelude::*;
 
 use flowclib::model::flow::Flow;
 use flowrlib::loader::Loader;
 use flowrstructs::manifest::Manifest;
 
-use crate::{widgets, FLOW_GRAPH_PAGE};
-use crate::widgets::WidgetRefs;
+use crate::build_ui::{widgets, MANIFEST_PAGE, FLOW_GRAPH_PAGE};
+use crate::build_ui::widgets::WidgetRefs;
 use std::rc::Rc;
-use crate::MANIFEST_PAGE;
 
 pub struct UIContext {
     pub loader: Option<Loader>,
