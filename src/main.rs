@@ -12,6 +12,7 @@ mod ui_context;
 mod actions;
 mod options;
 mod build_ui;
+mod ui_layout;
 // mod cli_debug_client;//#![deny(missing_docs)]
 
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
