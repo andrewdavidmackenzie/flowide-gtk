@@ -54,6 +54,8 @@ pub fn build_ui(application: &Application, url: &Option<Url>, flow_args: &Vec<St
     let widget_refs = ui_layout::create(application);
 
     ////// Actions
+    widget_refs.app_window.set_title(env!("CARGO_PKG_NAME"));
+
     widget_refs.app_window.connect_delete_event(move |_, _| {
         process::exit(1);
         // This is the recommended code but it causes an error message on exit currently
@@ -75,3 +77,113 @@ pub fn build_ui(application: &Application, url: &Option<Url>, flow_args: &Vec<St
 
     widgets::init_storage(widget_refs);
 }
+
+// let button: Button = builder.get_object("button").expect("Couldn't get button");
+// let entry: Entry = builder.get_object("entry").expect("Couldn't get entry");
+//
+// button.connect_clicked(glib::clone!(@weak window, @weak entry => move |_| {
+//         let dialog = Dialog::with_buttons(Some("Hello!"),
+//                                               Some(&window),
+//                                               gtk::DialogFlags::MODAL,
+//                                               &[("No", ResponseType::No),
+//                                                 ("Yes", ResponseType::Yes),
+//                                                 ("Custom", ResponseType::Other(0))]);
+//
+//         dialog.connect_response(glib::clone!(@weak entry => move |dialog, response| {
+//             entry.set_text(&format!("Clicked {}", response));
+//             dialog.close();
+//         }));
+//         dialog.show_all();
+//     }));
+//
+// let button_font: Button = builder
+// .get_object("button_font")
+// .expect("Couldn't get button_font");
+// button_font.connect_clicked(glib::clone!(@weak window => move |_| {
+//         let dialog = FontChooserDialog::new(Some("Font chooser test"), Some(&window));
+//
+//         dialog.connect_response(|dialog, _| dialog.close());
+//         dialog.show_all();
+//     }));
+//
+// let button_recent: Button = builder
+// .get_object("button_recent")
+// .expect("Couldn't get button_recent");
+// button_recent.connect_clicked(glib::clone!(@weak window => move |_| {
+//         let dialog = RecentChooserDialog::new(Some("Recent chooser test"), Some(&window));
+//         dialog.add_buttons(&[
+//             ("Ok", ResponseType::Ok),
+//             ("Cancel", ResponseType::Cancel)
+//         ]);
+//
+//         dialog.connect_response(|dialog, _| dialog.close());
+//         dialog.show_all();
+//     }));
+//
+// let file_button: Button = builder
+// .get_object("file_button")
+// .expect("Couldn't get file_button");
+// file_button.connect_clicked(glib::clone!(@weak window => move |_| {
+//         // entry.set_text("Clicked!");
+//         let dialog = FileChooserDialog::new(Some("Choose a file"), Some(&window),
+//                                             FileChooserAction::Open);
+//         dialog.add_buttons(&[
+//             ("Open", ResponseType::Ok),
+//             ("Cancel", ResponseType::Cancel)
+//         ]);
+//
+//         dialog.set_select_multiple(true);
+//
+//         dialog.connect_response(|dialog, response| {
+//             if response == ResponseType::Ok {
+//                 let files = dialog.get_filenames();
+//                 println!("Files: {:?}", files);
+//             }
+//             dialog.close();
+//         });
+//         dialog.show_all();
+//     }));
+//
+// let app_button: Button = builder
+// .get_object("app_button")
+// .expect("Couldn't get app_button");
+// app_button.connect_clicked(glib::clone!(@weak window => move |_| {
+//         // entry.set_text("Clicked!");
+//         let dialog = AppChooserDialog::new_for_content_type(Some(&window),
+//                                                             gtk::DialogFlags::MODAL,
+//                                                             "sh");
+//
+//         dialog.connect_response(|dialog, _| dialog.close());
+//         dialog.show_all();
+//     }));
+//
+// let switch: Switch = builder.get_object("switch").expect("Couldn't get switch");
+// switch.connect_changed_active(glib::clone!(@weak entry => move |switch| {
+//         if switch.get_active() {
+//             entry.set_text("Switch On");
+//         } else {
+//             entry.set_text("Switch Off");
+//         }
+//     }));
+//
+// let button_about: Button = builder
+// .get_object("button_about")
+// .expect("Couldn't get button_about");
+// let dialog: AboutDialog = builder.get_object("dialog").expect("Couldn't get dialog");
+// button_about.connect_clicked(move |x| about_clicked(x, &dialog));
+//
+// app_window.connect_key_press_event(
+// glib::clone!(@weak entry => @default-return Inhibit(false), move |_, key| {
+//             let keyval = key.get_keyval();
+//             let keystate = key.get_state();
+//
+//             println!("key pressed: {} / {:?}", keyval, keystate);
+//             println!("text: {}", entry.get_text());
+//
+//             if keystate.intersects(gdk::ModifierType::CONTROL_MASK) {
+//                 println!("You pressed Ctrl!");
+//             }
+//
+//             Inhibit(false)
+//         }),
+// );

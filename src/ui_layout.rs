@@ -1,5 +1,3 @@
-use std::env;
-
 use gio::prelude::*;
 use gtk::{Application, ApplicationWindow, Justification, ScrolledWindow, TextBuffer, Widget, WidgetExt, WindowPosition};
 use gtk::prelude::*;
@@ -47,7 +45,6 @@ fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: 
 
 pub fn create(application: &Application) -> widgets::WidgetRefs {
     let app_window = ApplicationWindow::new(application);
-    app_window.set_title(env!("CARGO_PKG_NAME"));
     app_window.set_position(WindowPosition::Center);
     app_window.set_size_request(600, 400);
 

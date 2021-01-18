@@ -64,7 +64,7 @@ fn compile_action(compile: &MenuItem) {
 
 // Return a Path(PathBuf) to a resource file that is part of the application
 fn resource(path: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join(path)
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("resources").join(path)
 }
 
 fn about_dialog() -> AboutDialog {
@@ -76,8 +76,11 @@ fn about_dialog() -> AboutDialog {
     p.set_version(Some(env!("CARGO_PKG_VERSION")));
     p.set_comments(Some(&format!("flowclib version: {}\nflowrlib version: {}",
                                  flowclib::info::version(), flowrlib::info::version())));
-    if let Ok(image) = Pixbuf::from_file(resource("icons/png/128x128.png")) {
-        p.set_logo(Some(&image));
+    let resource_path = resource("icons/png/128x128.png");
+    match Pixbuf::from_file(&resource_path) {
+        Ok(image) => p.set_logo(Some(&image)),
+        _ => crate::log_error(&format!("Could not load logo from resource a path '{}'",
+                                       resource_path.display()))
     }
 
     // TODO
