@@ -14,6 +14,7 @@ mod options;
 mod build_ui;
 mod ui_layout;
 // mod cli_debug_client;//#![deny(missing_docs)]
+mod ui_layout_glade;
 
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
 pub fn log_error(message: &str) {

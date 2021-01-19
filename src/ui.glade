@@ -2,48 +2,126 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.10"/>
-  <object class="GtkAboutDialog" id="dialog">
+  <object class="GtkMenuBar">
+    <property name="visible">True</property>
     <property name="can-focus">False</property>
-    <property name="type-hint">dialog</property>
-    <property name="program-name">Glade</property>
-    <property name="website">http://gtk-rs.org</property>
-    <property name="authors">James T. Kirk
-Spock
-Leonard McCoy</property>
-    <property name="artists">James T. Kirk</property>
-    <property name="logo-icon-name">image-missing</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="aboutdialog-vbox1">
+    <child>
+      <object class="GtkMenuItem">
+        <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="aboutdialog-action_area1">
+        <property name="label" translatable="yes">_Flow</property>
+        <property name="use-underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu">
+            <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="layout-style">end</property>
+            <child>
+              <object class="GtkImageMenuItem">
+                <property name="label">gtk-open</property>
+                <property name="name">flow_open</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="action-name">flow_open</property>
+                <property name="use-underline">True</property>
+                <property name="use-stock">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImageMenuItem">
+                <property name="label">gtk-new</property>
+                <property name="name">flow_new</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="action-name">new_flow</property>
+                <property name="use-underline">True</property>
+                <property name="use-stock">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImageMenuItem">
+                <property name="label">gtk-jump-to</property>
+                <property name="name">flow_compile</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="action-name">flow_compile</property>
+                <property name="use-underline">True</property>
+                <property name="use-stock">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImageMenuItem">
+                <property name="label">gtk-quit</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="use-underline">True</property>
+                <property name="use-stock">True</property>
+              </object>
+            </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack-type">end</property>
-            <property name="position">0</property>
-          </packing>
         </child>
-        <child>
-          <placeholder/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">_Manifest</property>
+        <property name="use-underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Open</property>
+                <property name="use-underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Run</property>
+                <property name="use-underline">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label" translatable="yes">_Help</property>
+        <property name="use-underline">True</property>
+        <child type="submenu">
+          <object class="GtkMenu">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkImageMenuItem">
+                <property name="label">gtk-about</property>
+                <property name="name">ide_about</property>
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="action-name">ide_about</property>
+                <property name="use-underline">True</property>
+                <property name="use-stock">True</property>
+              </object>
+            </child>
+          </object>
         </child>
       </object>
     </child>
   </object>
-  <object class="GtkAdjustment" id="spin_adjustment">
-    <property name="upper">100</property>
-    <property name="step-increment">1</property>
-    <property name="page-increment">10</property>
-  </object>
-  <object class="GtkApplicationWindow" id="window">
+  <object class="GtkApplicationWindow" id="app_window">
     <property name="can-focus">False</property>
-    <property name="title" translatable="yes">Yeah a beautiful window with gtk !</property>
+    <property name="title" translatable="yes">flowide</property>
     <property name="window-position">center</property>
+    <property name="hide-titlebar-when-maximized">True</property>
     <child>
       <object class="GtkFrame" id="frame">
         <property name="visible">True</property>
@@ -52,33 +130,59 @@ Leonard McCoy</property>
         <property name="label-xalign">0</property>
         <property name="shadow-type">none</property>
         <child>
-          <object class="GtkAlignment" id="alignment1">
+          <object class="GtkBox" id="_box">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="left-padding">12</property>
+            <property name="border-width">5</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">10</property>
             <child>
-              <object class="GtkBox" id="_box">
+              <object class="GtkNotebook" id="flow_notebook">
                 <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="border-width">5</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">10</property>
+                <property name="can-focus">True</property>
+                <property name="scrollable">True</property>
                 <child>
+                  <placeholder/>
+                </child>
+                <child type="tab">
                   <placeholder/>
                 </child>
                 <child>
                   <placeholder/>
                 </child>
-                <child>
+                <child type="tab">
                   <placeholder/>
                 </child>
                 <child>
                   <placeholder/>
                 </child>
+                <child type="tab">
+                  <placeholder/>
+                </child>
                 <child>
+                  <placeholder/>
+                </child>
+                <child type="tab">
                   <placeholder/>
                 </child>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
             </child>
           </object>
         </child>
