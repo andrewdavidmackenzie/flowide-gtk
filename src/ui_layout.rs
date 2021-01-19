@@ -116,7 +116,6 @@ pub fn create(application: &Application) -> widgets::WidgetRefs {
 
     widgets::WidgetRefs {
         app_window,
-        main_window,
         flow_buffer,
         manifest_buffer,
         flow_notebook,

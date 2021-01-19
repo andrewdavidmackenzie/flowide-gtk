@@ -25,7 +25,6 @@ gtk_refs!(
     pub mod widgets;   // The macro emits a new module with this name
     struct WidgetRefs; // The macro emits a struct with this name containing references to following fields
     app_window: gtk::ApplicationWindow,
-    main_window: gtk::Box,
     flow_buffer: gtk::TextBuffer,
     manifest_buffer: gtk::TextBuffer,
     flow_notebook: gtk::Notebook,
