@@ -15,6 +15,7 @@ mod build_ui;
 mod ui_layout;
 // mod cli_debug_client;//#![deny(missing_docs)]
 mod notebook;
+mod toolbar;
 
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
 pub fn log_error(message: &str) {
