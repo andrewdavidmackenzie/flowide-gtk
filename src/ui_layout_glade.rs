@@ -1,6 +1,6 @@
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder};
-
+use crate::notebook;
 use crate::build_ui::widgets;
 
 pub fn create(application: &gtk::Application) -> widgets::WidgetRefs {
@@ -11,11 +11,14 @@ pub fn create(application: &gtk::Application) -> widgets::WidgetRefs {
 
     app_window.show_all();
 
+    let mut flow_notebook = builder.get_object("flow_notebook").expect("Couldn't get flow_notebook");
+    let (flow_buffer, manifest_buffer) = notebook::create_tabs(&mut flow_notebook);
+
     widgets::WidgetRefs {
         app_window,
-        flow_buffer: builder.get_object("flow_buffer").expect("Couldn't get flow_buffer"),
-        manifest_buffer: builder.get_object("manifest_buffer").expect("Couldn't get manifest_buffer"),
-        flow_notebook: builder.get_object("flow_notebook").expect("Couldn't get flow_notebook"),
+        flow_notebook,
+        flow_buffer,
+        manifest_buffer,
         args_buffer: builder.get_object("args_buffer").expect("Couldn't get args_buffer"),
         stdout: builder.get_object("stdout_buffer").expect("Couldn't get stdout_buffer"),
         stderr: builder.get_object("stderr_buffer").expect("Couldn't get stderr_buffer"),

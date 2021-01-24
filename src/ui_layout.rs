@@ -4,6 +4,7 @@ use gtk::prelude::*;
 
 use crate::menu;
 use crate::build_ui::widgets;
+use crate::notebook;
 
 fn stdio() -> (ScrolledWindow, TextBuffer) {
     let scroll = gtk::ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
@@ -12,35 +13,6 @@ fn stdio() -> (ScrolledWindow, TextBuffer) {
     view.set_monospace(true);
     scroll.add(&view);
     (scroll, view.get_buffer().unwrap())
-}
-
-fn flow_graph_viewer() -> ScrolledWindow {
-    let scroll = gtk::ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
-    // let view = gtk::TextView::new();
-    // view.set_editable(false);
-    // scroll.add(&view);
-    scroll
-}
-
-fn flow_json_viewer() -> (ScrolledWindow, TextBuffer) {
-    let scroll = gtk::ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
-    let view = gtk::TextView::new();
-    view.set_editable(false);
-    scroll.add(&view);
-    (scroll, view.get_buffer().unwrap())
-}
-
-fn manifest_viewer() -> (ScrolledWindow, TextBuffer) {
-    let scroll = gtk::ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
-    let view = gtk::TextView::new();
-    view.set_editable(false);
-    scroll.add(&view);
-    (scroll, view.get_buffer().unwrap())
-}
-
-fn create_tab<P: IsA<Widget>>(notebook: &mut gtk::Notebook, title: &str, child: &P) -> u32 {
-    let label = gtk::Label::new(Some(title));
-    notebook.append_page(child, Some(&label))
 }
 
 pub fn create(application: &Application) -> widgets::WidgetRefs {
@@ -76,19 +48,16 @@ pub fn create(application: &Application) -> widgets::WidgetRefs {
 
     // Notebook for flow and manifest content
     let mut flow_notebook = gtk::Notebook::new();
-    let flow_graph_view = flow_graph_viewer();
-    let _ = create_tab(&mut flow_notebook, "Flow", &flow_graph_view);
-    let (flow_json_view, flow_buffer) = flow_json_viewer();
-    let _ = create_tab(&mut flow_notebook, "Flow (json)", &flow_json_view);
-    let (manifest_view, manifest_buffer) = manifest_viewer();
-    let _ = create_tab(&mut flow_notebook, "Manifest", &manifest_view);
+    let (flow_buffer, manifest_buffer) = notebook::create_tabs(&mut flow_notebook);
     main_window.pack_start(&flow_notebook, true, true, 0);
 
     let mut notebook = gtk::Notebook::new();
     let (stdout_view, stdout_buffer) = stdio();
+    let label = gtk::Label::new(Some("STDOUT"));
+    notebook.append_page(&stdout_view, Some(&label));
     let (stderr_view, stderr_buffer) = stdio();
-    let _ = create_tab(&mut notebook, "STDOUT", &stdout_view);
-    let _ = create_tab(&mut notebook, "STDERR", &stderr_view);
+    let label = gtk::Label::new(Some("STDERR"));
+    notebook.append_page(&stderr_view, Some(&label));
     main_window.pack_start(&notebook, true, true, 0);
 
     // Status bar at the bottom
