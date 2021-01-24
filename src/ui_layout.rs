@@ -52,10 +52,11 @@ fn main_window() -> (gtk::Box, TextBuffer, TextBuffer, TextBuffer, Notebook, Tex
     main_window.pack_start(&args_bar, false, true, 0);
     let args_buffer = args_view.get_buffer().unwrap();
 
+    let notebook_paned = gtk::Paned::new(gtk::Orientation::Vertical);
     // Notebook for flow and manifest content
     let mut flow_notebook = gtk::Notebook::new();
     let (flow_buffer, manifest_buffer) = notebook::create_tabs(&mut flow_notebook);
-    main_window.pack_start(&flow_notebook, true, true, 0);
+    notebook_paned.add1(&flow_notebook);
 
     let notebook = gtk::Notebook::new();
     let (stdout_view, stdout_buffer) = stdio();
@@ -64,7 +65,9 @@ fn main_window() -> (gtk::Box, TextBuffer, TextBuffer, TextBuffer, Notebook, Tex
     let (stderr_view, stderr_buffer) = stdio();
     let label = gtk::Label::new(Some("STDERR"));
     notebook.append_page(&stderr_view, Some(&label));
-    main_window.pack_start(&notebook, true, true, 4);
+    notebook_paned.add2(&notebook);
+
+    main_window.pack_start(&notebook_paned, true, true, 4);
 
     (main_window, args_buffer, flow_buffer, manifest_buffer, flow_notebook, stdout_buffer, stderr_buffer)
 }
@@ -72,27 +75,33 @@ fn main_window() -> (gtk::Box, TextBuffer, TextBuffer, TextBuffer, Notebook, Tex
 pub fn create(application: &Application) -> widgets::WidgetRefs {
     let app_window = ApplicationWindow::new(application);
     app_window.set_position(WindowPosition::Center);
-    app_window.set_size_request(600, 400);
-    let v_box = gtk::Box::new(gtk::Orientation::Vertical, 10);
+    let v_box = gtk::Box::new(gtk::Orientation::Vertical, 4);
 
     // Create menu bar
     let (menu_bar, accelerator_group, compile_flow_menu, run_manifest_menu) = menu::menu_bar(&app_window);
     app_window.add_accel_group(&accelerator_group);
-    v_box.pack_start(&menu_bar, false, false, 0);
+    v_box.pack_start(&menu_bar, false, false, 4);
 
     //Create toolbar
     let toolbar = toolbar::create(&app_window);
-    v_box.pack_start(&toolbar, false, false, 0);
+    v_box.pack_start(&toolbar, false, false, 4);
 
     // A horizontal box to lay out main elements
-    let h_box = gtk::Box::new(gtk::Orientation::Horizontal, 10);
-
+    let paned = gtk::Paned::new(gtk::Orientation::Horizontal);
+    // project view
+    let project_view = gtk::Paned::new(gtk::Orientation::Vertical);
+    let files_view = gtk::Label::new(Some("Flow Files"));
+    project_view.add1(&files_view);
+    let libs_view = gtk::Label::new(Some("Flow Libs"));
+    project_view.add2(&libs_view);
+    paned.add1(&project_view);
+    paned.set_position(100);
+    // main window
     let (main_window, args_buffer, flow_buffer, manifest_buffer, flow_notebook, stdout, stderr) = main_window();
-
-    h_box.pack_start(&main_window, true, true, 4);
+    paned.add2(&main_window);
 
     // Stack the h_box with many of the main elements
-    v_box.pack_start(&h_box, true, true, 0);
+    v_box.pack_start(&paned, true, true, 0);
 
     // Status bar at the bottom
     let (status_message, status_bar) = status_bar();
