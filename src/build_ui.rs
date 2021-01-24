@@ -7,7 +7,7 @@ use gtk_rs_state::gtk_refs;
 use lazy_static::lazy_static;
 use url::Url;
 
-use crate::{actions, ui_layout, ui_layout_glade};
+use crate::{actions, ui_layout};
 use crate::ui_context::UIContext;
 
 // Tabs/Pages in the notebook
@@ -50,7 +50,7 @@ fn run_action(run: &MenuItem, args_buffer: gtk::TextBuffer) {
 }
 
 pub fn build_ui(application: &Application, url: &Option<Url>, flow_args: &Vec<String>, _stdin_file: &Option<String>) {
-    let widget_refs = ui_layout_glade::create(application);
+    let widget_refs = ui_layout::create(application);
 
     ////// Actions
     widget_refs.app_window.set_title(env!("CARGO_PKG_NAME"));

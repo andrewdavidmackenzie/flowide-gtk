@@ -1,5 +1,4 @@
-use gio::prelude::*;
-use gtk::{Application, ApplicationWindow, Justification, ScrolledWindow, TextBuffer, Widget, WidgetExt, WindowPosition};
+use gtk::{ScrolledWindow, TextBuffer};
 use gtk::prelude::*;
 
 fn flow_graph_viewer(title: &str, notebook: &mut gtk::Notebook) -> ScrolledWindow {

@@ -1,5 +1,4 @@
-use gio::prelude::*;
-use gtk::{Application, ApplicationWindow, Justification, ScrolledWindow, TextBuffer, Widget, WidgetExt, WindowPosition};
+use gtk::{Application, ApplicationWindow, Justification, ScrolledWindow, TextBuffer, WidgetExt, WindowPosition};
 use gtk::prelude::*;
 
 use crate::menu;
@@ -19,9 +18,11 @@ pub fn create(application: &Application) -> widgets::WidgetRefs {
     let app_window = ApplicationWindow::new(application);
     app_window.set_position(WindowPosition::Center);
     app_window.set_size_request(600, 400);
+    let v_box = gtk::Box::new(gtk::Orientation::Vertical, 10);
 
     // Create menu bar
     let (menu_bar, accelerator_group, compile_flow_menu, run_manifest_menu) = menu::menu_bar(&app_window);
+    v_box.pack_start(&menu_bar, false, false, 0);
 
     // Add menu accelerators
     app_window.add_accel_group(&accelerator_group);
@@ -51,7 +52,7 @@ pub fn create(application: &Application) -> widgets::WidgetRefs {
     let (flow_buffer, manifest_buffer) = notebook::create_tabs(&mut flow_notebook);
     main_window.pack_start(&flow_notebook, true, true, 0);
 
-    let mut notebook = gtk::Notebook::new();
+    let notebook = gtk::Notebook::new();
     let (stdout_view, stdout_buffer) = stdio();
     let label = gtk::Label::new(Some("STDOUT"));
     notebook.append_page(&stdout_view, Some(&label));
@@ -75,8 +76,6 @@ pub fn create(application: &Application) -> widgets::WidgetRefs {
     status_bar.pack_start(&status_message, true, true, 0);
     main_window.pack_start(&status_bar, false, true, 0);
 
-    let v_box = gtk::Box::new(gtk::Orientation::Vertical, 10);
-    v_box.pack_start(&menu_bar, false, false, 0);
     v_box.pack_start(&main_window, true, true, 0);
 
     app_window.add(&v_box);
