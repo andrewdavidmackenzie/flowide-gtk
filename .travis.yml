@@ -29,7 +29,7 @@ addons:
       - cairo
 
 script:
-  - travis_wait 60 make
+  - make
 
 notifications:
   email:
