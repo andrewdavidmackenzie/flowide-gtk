@@ -21,12 +21,14 @@ metrics = []  # feature for tracking of metrics during execution
 
 [dependencies]
 flow_impl = "0.21"
-flowc = "0.34"
-# Enable debugger feature in flowrstructs
-#flowrstructs = { version = "0.25.0", features = ["debugger"] }
-flowrstructs = "0.33"
-# Do not enable the "distributed" feature for flowrlib
-#flowr = { version = "0.34.1", default-features = false, features = ["debugger", "native", "metrics", "checks"] }
+# Do not enable debugger feature in flowc
+# - default features = ["debugger"] }
+flowc = { version = "0.34", default-features = false, features = [] }
+# Do not enable debugger feature in flowrstructs
+# - default features = ["debugger"] }
+flowrstructs = { version = "0.33", default-features = false, features = [] }
+# Do not enable the "distributed" or "debugger" features for flowrlib
+# - default features = ["debugger", "native", "metrics", "checks"] }
 flowr = { version = "0.34.1", default-features = false, features = ["native", "metrics", "checks"] }
 provider = "0.25.0"
 
@@ -43,3 +45,6 @@ gdk-pixbuf = "0.9"
 gio = "0.9"
 gtk = {version = "0.9", features = ["v3_16"] }
 image = "=0.23.10"
+
+[profile.dev]
+split-debuginfo = "unpacked"
