@@ -1,30 +1,27 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Write;
-
 use flowrlib::client_server::RuntimeClientConnection;
 use flowrlib::coordinator::Submission;
 use flowrlib::runtime::{Event, Response};
 use flowrlib::runtime::Response::ClientSubmission;
+use std::io::Write;
+// use gtk::{WidgetExt, ApplicationWindow, WindowPosition};
+// use gtk::prelude::*;
 use gtk::TextBufferExt;
-use image::{ImageBuffer, Rgb};
 
 use crate::build_ui::widgets;
-use crate::ui_context::UIContext;
+use crate::ui_context::UiContext;
+use std::fs::File;
 
 #[derive(Debug, Clone)]
-pub struct IDERuntimeClient {
+pub struct IdeRuntimeClient {
     args: Vec<String>,
-    image_buffers: HashMap<String, ImageBuffer<Rgb<u8>, Vec<u8>>>,
     display_metrics: bool,
 }
 
-impl IDERuntimeClient {
+impl IdeRuntimeClient {
     // Create a new Runtime Client - an IDE version
     fn new(args: Vec<String>, display_metrics: bool) -> Self {
-        IDERuntimeClient {
+        IdeRuntimeClient {
             args,
-            image_buffers: HashMap::<String, ImageBuffer<Rgb<u8>, Vec<u8>>>::new(),
             display_metrics,
         }
     }
@@ -33,11 +30,11 @@ impl IDERuntimeClient {
     pub fn start(mut connection: RuntimeClientConnection,
                  submission: Submission, flow_args: Vec<String>) {
         if let Err(e) = connection.start() {
-            UIContext::ui_error(&format!("Error while starting IDE Runtime client, creating connection: {}", e));
+            UiContext::ui_error(&format!("Error while starting IDE Runtime client, creating connection: {}", e));
         }
 
         if let Err(e) = connection.client_send(ClientSubmission(submission)) {
-            UIContext::ui_error(&format!("Error while starting IDE Runtime client, client_send: {}", e));
+            UiContext::ui_error(&format!("Error while starting IDE Runtime client, client_send: {}", e));
         }
 
         let mut runtime_client = Self::new(flow_args, true /* display_metrics */);
@@ -47,13 +44,13 @@ impl IDERuntimeClient {
                 Ok(event) => {
                     let response = runtime_client.process_event(event);
                     if response == Response::ClientExiting {
-                        UIContext::message("Flow execution ended");
+                        UiContext::message("Flow execution ended");
                         return;
                     }
 
                     let _ = connection.client_send(response);
                 }
-                Err(e) => UIContext::ui_error(&format!("Error receiving Event in runtime client: {}", e))
+                Err(e) => UiContext::ui_error(&format!("Error receiving Event in runtime client: {}", e))
             }
         }
     }
@@ -76,8 +73,7 @@ impl IDERuntimeClient {
                 Response::Ack
             }
             Event::GetStdin => {
-//                Response::Stdin("bla bla".to_string()) // TODO
-                Response::Error("Could not read Stdin".into())
+                Response::Stdin("bla bla".to_string()) // TODO
             }
             Event::GetLine => {
                 Response::Stdin("bla bla".to_string())  // TODO
@@ -91,13 +87,27 @@ impl IDERuntimeClient {
                 Response::Ack
             }
             Event::PixelWrite((_x, _y), (_r, _g, _b), (_width, _height), _name) => {
-                // let image = self.image_buffers.entry(name)
-                //     .or_insert(RgbImage::new(width, height));
-                // image.put_pixel(x, y, Rgb([r, g, b]));
+                // widgets::do_in_gtk_eventloop(|refs| {
+                //     let pix_buf = refs.image();
+                //     if pix_buf.get_width() == 0 {
+                //         pix_buf.set_width(width as i32);
+                //         pix_buf.set_height(height as i32);
+                //         let image = gtk::Image::from_pixbuf(Some(&pix_buf));
+                //
+                //         let image_window = ApplicationWindow::new(&refs.app());
+                //         image_window.set_title(&name);
+                //         image_window.set_position(WindowPosition::Center);
+                //         image_window.set_size_request(width as i32, height as i32);
+                //         image_window.add(&image);
+                //         image_window.show_all();
+                //     }
+                //     pix_buf.put_pixel(x, y, r, g, b, 255);
+                // });
+
                 Response::Ack
             }
             Event::StderrEOF => Response::Ack,
-            Event::Invalid => Response::Ack
+            Event::Invalid => Response::Ack,
         }
     }
 }
