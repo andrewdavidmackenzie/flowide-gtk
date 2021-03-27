@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # `flowide`
+
 `flowide` is an experimental visual IDE (using gtk3) for [flow](http://github.com/andrewdavidmackenzie/flow) 
 programs.
 
@@ -17,38 +18,21 @@ Currently, it allows you to:
     * JSON is shown in text in the "Manifest" tab
   * Run the compiled flow from its manifest
     * STDERR and STDOUT are shown in two tabs
-    
+
 # Example UI
+
 The UI is still very basic, but here it is after having loaded the "fibonacci" flow from context.toml description
 file, compiled it to manifest.json manifest format (using `flowlibc`) and then the outout on the `STDOUT` tab when 
 running it (using `flowrlib`).
 ![UI sample](images/running_fibonacci.png)
 
-## Building
-### Installing dependencies
-You can have the Makrfile install the required dependencies on Mac OS X or Linux using
-* `make config`
+# Command line usage
 
-### Building and Running
-You can build or run using the make targets:
-* `make build`
-* `make run`
-
-or just use cargo:
-* `cargo build`
-* `cargo run`
-
-### Running tests
-There are not many tests yet, but you can run all there are using:
-* `make test`
-* `cargo test`
-
-## Command line usage
 You can find the latest up-to-date command line usage using:
 * `cargo run -- --help` or
-* `flowide --help` if you have installed it. 
-  
-Either will show you the usage:
+* `flowide --help` if you have installed it using `cargo install flowide-gtk`
+
+Either will show you the usage, which currently is:
 ```bash
 flowide 0.32.0
 
@@ -67,7 +51,33 @@ ARGS:
     <FLOW>            the name of the 'flow' definition file to open
     <flow_args>...    Arguments that will get passed onto the flow if it is executed
 ```
-## Platforms supported
+
+# Building
+## Installing dependencies
+You can have the Makrfile install the required dependencies on Mac OS X or Linux using
+* `make config`
+
+## Building and Running
+You can build or run using the make targets:
+* `make build`
+* `make run`
+
+or just use cargo:
+* `cargo build`
+* `cargo run`
+
+## Running tests
+There are not many tests yet, but you can run all there are using:
+* `make test`
+* `cargo test`
+
+## Do it all with `make`
+If you run just `make`, the default make target will run:
+* `cargo build test clippy`
+
+Where `clippy` is the rust `cargo` component that runs a number of lint checks on the code.
+
+# Platforms supported
 `flowide` is developed mainly on Mac OS X, but CI builds are done for Mac
 and Linux. But since there is no automatic UI testing done in 
-CI, all it ensures is that it builds on the two platforms.
+CI, all it ensures is that it builds and unit tests pass on both platforms.
