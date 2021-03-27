@@ -29,7 +29,7 @@ addons:
       - cairo
 
 script:
-  - make
+  - make test
 
 notifications:
   email:
