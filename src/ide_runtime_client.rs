@@ -1,21 +1,19 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::Write;
-
 use flowrlib::client_server::RuntimeClientConnection;
 use flowrlib::coordinator::Submission;
 use flowrlib::runtime::{Event, Response};
 use flowrlib::runtime::Response::ClientSubmission;
+use std::io::Write;
+// use gtk::{WidgetExt, ApplicationWindow, WindowPosition};
+// use gtk::prelude::*;
 use gtk::TextBufferExt;
-use image::{ImageBuffer, Rgb};
 
 use crate::build_ui::widgets;
 use crate::ui_context::UIContext;
+use std::fs::File;
 
 #[derive(Debug, Clone)]
 pub struct IDERuntimeClient {
     args: Vec<String>,
-    image_buffers: HashMap<String, ImageBuffer<Rgb<u8>, Vec<u8>>>,
     display_metrics: bool,
 }
 
@@ -24,7 +22,6 @@ impl IDERuntimeClient {
     fn new(args: Vec<String>, display_metrics: bool) -> Self {
         IDERuntimeClient {
             args,
-            image_buffers: HashMap::<String, ImageBuffer<Rgb<u8>, Vec<u8>>>::new(),
             display_metrics,
         }
     }
@@ -76,7 +73,7 @@ impl IDERuntimeClient {
                 Response::Ack
             }
             Event::GetStdin => {
-               Response::Stdin("bla bla".to_string()) // TODO
+                Response::Stdin("bla bla".to_string()) // TODO
             }
             Event::GetLine => {
                 Response::Stdin("bla bla".to_string())  // TODO
@@ -89,15 +86,28 @@ impl IDERuntimeClient {
                 file.write_all(bytes.as_slice()).unwrap();
                 Response::Ack
             }
-            Event::PixelWrite((x, y), (_r, _g, _b), (_width, _height), name) => {
-                println!("Written to pixel ({}, {}) in image '{}'", x, y, name);
-                // let image = self.image_buffers.entry(name)
-                //     .or_insert(RgbImage::new(width, height));
-                // image.put_pixel(x, y, Rgb([r, g, b]));
+            Event::PixelWrite((_x, _y), (_r, _g, _b), (_width, _height), _name) => {
+                // widgets::do_in_gtk_eventloop(|refs| {
+                //     let pix_buf = refs.image();
+                //     if pix_buf.get_width() == 0 {
+                //         pix_buf.set_width(width as i32);
+                //         pix_buf.set_height(height as i32);
+                //         let image = gtk::Image::from_pixbuf(Some(&pix_buf));
+                //
+                //         let image_window = ApplicationWindow::new(&refs.app());
+                //         image_window.set_title(&name);
+                //         image_window.set_position(WindowPosition::Center);
+                //         image_window.set_size_request(width as i32, height as i32);
+                //         image_window.add(&image);
+                //         image_window.show_all();
+                //     }
+                //     pix_buf.put_pixel(x, y, r, g, b, 255);
+                // });
+
                 Response::Ack
             }
             Event::StderrEOF => Response::Ack,
-            Event::Invalid => Response::Ack
+            Event::Invalid => Response::Ack,
         }
     }
 }

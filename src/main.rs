@@ -18,11 +18,11 @@ mod notebook;
 
 // For logging errors related with the UI that suggest displaying them on the UI maybe impossible
 pub fn log_error(message: &str) {
-    error!("UI message: {}", message);
+    error!("UI error: {}", message);
 }
 
 pub fn log_warn(message: &str) {
-    warn!("UI message: {}", message);
+    warn!("UI warning: {}", message);
 }
 
 fn main() {
