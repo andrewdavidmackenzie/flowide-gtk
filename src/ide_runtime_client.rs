@@ -76,8 +76,7 @@ impl IDERuntimeClient {
                 Response::Ack
             }
             Event::GetStdin => {
-//                Response::Stdin("bla bla".to_string()) // TODO
-                Response::Error("Could not read Stdin".into())
+               Response::Stdin("bla bla".to_string()) // TODO
             }
             Event::GetLine => {
                 Response::Stdin("bla bla".to_string())  // TODO
@@ -90,7 +89,8 @@ impl IDERuntimeClient {
                 file.write_all(bytes.as_slice()).unwrap();
                 Response::Ack
             }
-            Event::PixelWrite((_x, _y), (_r, _g, _b), (_width, _height), _name) => {
+            Event::PixelWrite((x, y), (_r, _g, _b), (_width, _height), name) => {
+                println!("Written to pixel ({}, {}) in image '{}'", x, y, name);
                 // let image = self.image_buffers.entry(name)
                 //     .or_insert(RgbImage::new(width, height));
                 // image.put_pixel(x, y, Rgb([r, g, b]));

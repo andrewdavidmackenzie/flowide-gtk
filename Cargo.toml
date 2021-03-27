@@ -45,6 +45,3 @@ gdk-pixbuf = "0.9"
 gio = "0.9"
 gtk = {version = "0.9", features = ["v3_16"] }
 image = "=0.23.10"
-
-[profile.dev]
-split-debuginfo = "unpacked"

@@ -7,7 +7,7 @@ use gtk_rs_state::gtk_refs;
 use lazy_static::lazy_static;
 use url::Url;
 
-use crate::{actions, ui_layout};
+use crate::{actions, ui_layout, log_error};
 use crate::ui_context::UIContext;
 
 // Tabs/Pages in the notebook
@@ -45,7 +45,20 @@ fn run_action(run: &MenuItem, args_buffer: gtk::TextBuffer) {
                 args = arg_string.split(' ').map(|s| s.to_string()).collect();
             }
         }
-        actions::run_manifest(args);
+
+        match UICONTEXT.try_lock() {
+            Ok(ref mut context) => {
+                match &context.manifest_url {
+                    Some(manifest_url) => {
+                        // Argument at index zero is the flow name
+                        args.insert(0, context.manifest.as_ref().unwrap().get_metadata().name.clone());
+                        actions::run_manifest(manifest_url.into(), args);
+                    }
+                    _ => UIContext::ui_error("No manifest loaded to run")
+                }
+            }
+            _ => log_error("Could not get access to uicontext")
+        }
     });
 }
 

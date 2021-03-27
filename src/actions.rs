@@ -99,26 +99,16 @@ pub fn open_manifest(url: String) {
 /// Background action that executes a compiled flow manifest on a thread passing the supplied array
 /// of arguments to the runtime functions for the flow to use.
 /// This may result in output to stdout, stderr or other runtime functions that will be reflected on the UI.
-pub fn run_manifest(args: Vec<String>) {
+pub fn run_manifest(manifest_url: String, args: Vec<String>) {
     std::thread::spawn(move || {
-        match UICONTEXT.try_lock() {
-            Ok(ref mut context) => {
-                match &context.manifest_url {
-                    Some(manifest_url) => {
-                        match Coordinator::server(1, true /* native */, false, false, None) {
-                            Ok(runtime_connection) => {
-                                UIContext::clear_pre_run();
-                                UIContext::message(&format!("Submitting manifest for execution with args: '{:?}'", args));
-                                let submission = Submission::new(&manifest_url.to_string(), 1);
-                                IDERuntimeClient::start(runtime_connection, submission, args);
-                            }
-                            Err(e) => UIContext::ui_error(&format!("Could not make connection to server: {}", e))
-                        }
-                    }
-                    _ => UIContext::ui_error("No manifest loaded to run")
-                }
+        match Coordinator::server(1, true /* native */, false, false, None) {
+            Ok(runtime_connection) => {
+                UIContext::clear_pre_run();
+                UIContext::message(&format!("Submitting manifest for execution with args: '{:?}'", args));
+                let submission = Submission::new(&manifest_url, 1);
+                IDERuntimeClient::start(runtime_connection, submission, args);
             }
-            _ => log_error("Could not get access to uicontext and client")
+            Err(e) => UIContext::ui_error(&format!("Could not make connection to server: {}", e))
         }
     });
 }
