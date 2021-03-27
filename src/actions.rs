@@ -11,8 +11,8 @@ use provider::content::provider::{MetaProvider, Provider};
 
 use crate::{log_error, log_warn};
 use crate::build_ui::UICONTEXT;
-use crate::ide_runtime_client::IDERuntimeClient;
-use crate::ui_context::UIContext;
+use crate::ide_runtime_client::IdeRuntimeClient;
+use crate::ui_context::UiContext;
 use std::env;
 use simpath::Simpath;
 
@@ -26,33 +26,33 @@ pub fn compile_flow() {
                     Some(ref flow) => {
                         let flow_clone = flow.clone();
                         let flow_url = flow.source_url.clone();
-                        UIContext::message("Compiling flow");
+                        UiContext::message("Compiling flow");
                         match compile::compile(&flow_clone) {
                             Ok(mut tables) => {
-                                UIContext::message("Compiling provided implementations");
+                                UiContext::message("Compiling provided implementations");
                                 match compile_wasm::compile_supplied_implementations(&mut tables, false) {
                                     Ok(result) => {
-                                        UIContext::message(&result);
+                                        UiContext::message(&result);
                                         let mut manifest_url = Url::parse(&flow_url).unwrap();
                                         manifest_url = manifest_url.join(&format!("{}.json", DEFAULT_MANIFEST_FILENAME)).unwrap();
-                                        UIContext::message(&format!("Creating flow manifest at: {}", manifest_url.to_string()));
+                                        UiContext::message(&format!("Creating flow manifest at: {}", manifest_url.to_string()));
                                         match generate::create_manifest(&flow, true, &manifest_url.to_string(), &tables) {
                                             Ok(manifest) => context.set_manifest(Some(manifest_url.to_string()), Some(manifest)),
                                             Err(e) => {
-                                                UIContext::ui_error(&e.to_string());
-                                                UIContext::message("Creation of flow manifest failed");
+                                                UiContext::ui_error(&e.to_string());
+                                                UiContext::message("Creation of flow manifest failed");
                                             }
                                         }
                                     }
-                                    Err(e) => UIContext::ui_error(&e.to_string())
+                                    Err(e) => UiContext::ui_error(&e.to_string())
                                 }
                             }
-                            Err(e) => UIContext::ui_error(&e.to_string())
+                            Err(e) => UiContext::ui_error(&e.to_string())
                         }
                     }
                     _ => {
-                        UIContext::ui_error("No flow loaded to compile");
-                        UIContext::message("Flow compilation failed");
+                        UiContext::ui_error("No flow loaded to compile");
+                        UiContext::message("Flow compilation failed");
                     }
                 }
             }
@@ -100,8 +100,8 @@ pub fn open_flow(url: String) {
                     _ => log_error("Could not get access to uicontext")
                 }
             }
-            Ok(_) => UIContext::ui_error(&format!("Process loaded from Url: '{}' was not of type 'Flow'", url)),
-            Err(e) => UIContext::ui_error(&format!("Could not load flow from Url: '{}'. {}", url, e.to_string()))
+            Ok(_) => UiContext::ui_error(&format!("Process loaded from Url: '{}' was not of type 'Flow'", url)),
+            Err(e) => UiContext::ui_error(&format!("Could not load flow from Url: '{}'. {}", url, e.to_string()))
         }
     });
 }
@@ -118,7 +118,7 @@ pub fn open_manifest(url: String) {
                     Err(_) => log_error("Could not lock UI Context")
                 }
             }
-            Err(e) => UIContext::ui_error(&format!("Error loading manifest from url '{}': {}",
+            Err(e) => UiContext::ui_error(&format!("Error loading manifest from url '{}': {}",
                                                    url, &e.to_string()))
         }
     });
@@ -131,12 +131,12 @@ pub fn run_manifest(manifest_url: String, args: Vec<String>) {
     std::thread::spawn(move || {
         match Coordinator::server(1, get_lib_search_path(), true /* native */, false, false, None) {
             Ok(runtime_connection) => {
-                UIContext::clear_pre_run();
-                UIContext::message(&format!("Submitting manifest for execution with args: '{:?}'", args));
+                UiContext::clear_pre_run();
+                UiContext::message(&format!("Submitting manifest for execution with args: '{:?}'", args));
                 let submission = Submission::new(&manifest_url, 1);
-                IDERuntimeClient::start(runtime_connection, submission, args);
+                IdeRuntimeClient::start(runtime_connection, submission, args);
             }
-            Err(e) => UIContext::ui_error(&format!("Could not make connection to server: {}", e))
+            Err(e) => UiContext::ui_error(&format!("Could not make connection to server: {}", e))
         }
     });
 }

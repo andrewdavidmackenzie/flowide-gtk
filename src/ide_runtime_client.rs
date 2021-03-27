@@ -8,19 +8,19 @@ use std::io::Write;
 use gtk::TextBufferExt;
 
 use crate::build_ui::widgets;
-use crate::ui_context::UIContext;
+use crate::ui_context::UiContext;
 use std::fs::File;
 
 #[derive(Debug, Clone)]
-pub struct IDERuntimeClient {
+pub struct IdeRuntimeClient {
     args: Vec<String>,
     display_metrics: bool,
 }
 
-impl IDERuntimeClient {
+impl IdeRuntimeClient {
     // Create a new Runtime Client - an IDE version
     fn new(args: Vec<String>, display_metrics: bool) -> Self {
-        IDERuntimeClient {
+        IdeRuntimeClient {
             args,
             display_metrics,
         }
@@ -30,11 +30,11 @@ impl IDERuntimeClient {
     pub fn start(mut connection: RuntimeClientConnection,
                  submission: Submission, flow_args: Vec<String>) {
         if let Err(e) = connection.start() {
-            UIContext::ui_error(&format!("Error while starting IDE Runtime client, creating connection: {}", e));
+            UiContext::ui_error(&format!("Error while starting IDE Runtime client, creating connection: {}", e));
         }
 
         if let Err(e) = connection.client_send(ClientSubmission(submission)) {
-            UIContext::ui_error(&format!("Error while starting IDE Runtime client, client_send: {}", e));
+            UiContext::ui_error(&format!("Error while starting IDE Runtime client, client_send: {}", e));
         }
 
         let mut runtime_client = Self::new(flow_args, true /* display_metrics */);
@@ -44,13 +44,13 @@ impl IDERuntimeClient {
                 Ok(event) => {
                     let response = runtime_client.process_event(event);
                     if response == Response::ClientExiting {
-                        UIContext::message("Flow execution ended");
+                        UiContext::message("Flow execution ended");
                         return;
                     }
 
                     let _ = connection.client_send(response);
                 }
-                Err(e) => UIContext::ui_error(&format!("Error receiving Event in runtime client: {}", e))
+                Err(e) => UiContext::ui_error(&format!("Error receiving Event in runtime client: {}", e))
             }
         }
     }

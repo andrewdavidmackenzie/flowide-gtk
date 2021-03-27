@@ -9,16 +9,16 @@ use crate::build_ui::{widgets, MANIFEST_PAGE, FLOW_GRAPH_PAGE};
 use crate::build_ui::widgets::WidgetRefs;
 use std::rc::Rc;
 
-pub struct UIContext {
+pub struct UiContext {
     pub loader: Option<Loader>,
     pub flow: Option<Flow>,
     pub manifest: Option<Manifest>,
     pub manifest_url: Option<String>,
 }
 
-impl UIContext {
+impl UiContext {
     pub fn new() -> Self {
-        UIContext {
+        UiContext {
             loader: None,
             flow: None,
             manifest: None,
@@ -31,7 +31,7 @@ impl UIContext {
         self.flow = flow;
 
         if let Some(flow_loaded) = &self.flow {
-            UIContext::message(&format!("Flow loaded from '{:?}'", flow_loaded.source_url));
+            UiContext::message(&format!("Flow loaded from '{:?}'", flow_loaded.source_url));
         }
 
         // Serialize the flow into toml for ui display - or clear if None
@@ -54,7 +54,7 @@ impl UIContext {
                 match serde_json::to_string_pretty(&flow_found) {
                     Ok(flow_content) => self.set_flow_json_contents(Some(flow_content)),
                     Err(e) => {
-                        UIContext::ui_error(&format!("Error serializing flow to toml: `{}`", &e.to_string()));
+                        UiContext::ui_error(&format!("Error serializing flow to toml: `{}`", &e.to_string()));
                         self.set_flow_json_contents(None);
                     }
                 }
@@ -98,7 +98,7 @@ impl UIContext {
         self.manifest = manifest;
 
         if let Some(manifest_url) = &self.manifest_url {
-            UIContext::message(&format!("Compiled flow Manifest at '{:?}'", manifest_url));
+            UiContext::message(&format!("Compiled flow Manifest at '{:?}'", manifest_url));
         }
 
         match &self.manifest {
@@ -115,7 +115,7 @@ impl UIContext {
                     Ok(manifest_content) => Self::set_manifest_contents(Some(manifest_content)),
                     Err(e) => {
                         Self::set_manifest_contents(None);
-                        UIContext::ui_error(&format!("Could not convert manifest to Json for display: {}",
+                        UiContext::ui_error(&format!("Could not convert manifest to Json for display: {}",
                                                      e));
                     }
                 }
